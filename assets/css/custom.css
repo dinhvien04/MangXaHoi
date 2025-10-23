@@ -1,0 +1,506 @@
+body{
+    background-color: #F5F9F9;
+    /* background-size: cover; */
+}
+
+.login{
+    width:100vw;
+    height: 100vh;
+display: flex;
+justify-content: center;
+align-items: center;
+
+
+}/* Global Styles */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+/* Modal Styles */
+.modal-header {
+  background-color: #007bff;
+  color: #fff;
+  border-bottom: none;
+}
+.modal-title {
+  font-size: 1.5rem;
+}
+.modal-body {
+  padding: 1.5rem;
+  background-color: #fff;
+}
+.modal-content {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+.btn-close {
+  color: #fff;
+  opacity: 0.8;
+}
+.btn-close:hover {
+  opacity: 1;
+}
+
+/* Input and Button Styles */
+input[type="file"], textarea, input[type="text"] {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 1rem;
+}
+input[type="file"]:focus, textarea:focus, input[type="text"]:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+button:hover {
+  background-color: #0056b3;
+}
+textarea {
+  resize: none;
+}
+
+/* Notification Sidebar */
+.offcanvas-header {
+  background-color: #007bff;
+  color: #fff;
+}
+.offcanvas-body {
+  background-color: #f8f9fa;
+}
+.notification-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+.notification-item:hover {
+  background-color: #eef2f6;
+}
+.notification-item img {
+  border-radius: 50%;
+  margin-right: 10px;
+}
+.notification-item .badge {
+  font-size: 0.8rem;
+  padding: 5px 10px;
+}
+
+/* Chatbox Styles */
+#chatbox .modal-header {
+  background-color: #007bff; /* Màu xanh header */
+  color: #fff;
+}
+#chatbox .modal-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #ddd;
+}
+
+/* Ô nhập tin nhắn */
+#msginput {
+  border-radius: 5px; /* Bo góc nhẹ */
+}
+
+/* Nút gửi tin nhắn */
+#sendmsg {
+  margin-left: 10px;
+  background-color: #007bff; /* Màu xanh dương */
+  color: #fff; /* Màu chữ trắng */
+  border: none; /* Xóa viền */
+  border-radius: 50px; /* Bo tròn */
+  padding: 8px 20px; /* Tạo khoảng cách bên trong nút */
+  font-size: 1rem; /* Tăng kích thước chữ */
+  transition: background-color 0.3s ease; /* Hiệu ứng chuyển màu mượt */
+}
+
+/* Hiệu ứng hover */
+#sendmsg:hover {
+  background-color: #0056b3; /* Xanh dương đậm hơn khi hover */
+  cursor: pointer; /* Con trỏ chuột */
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal-dialog {
+      width: 90%;
+      margin: 0 auto;
+  }
+  .offcanvas-body {
+      padding: 10px;
+  }
+}
+
+
+
+
+
+/* Định dạng tổng thể cho form */
+#searchform {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Biểu tượng tìm kiếm */
+#searchform .bi-search {
+  font-size: 1.2rem;
+  color: #888; /* Màu biểu tượng */
+  left: 12px;  /* Vị trí cách bên trái */
+}
+
+/* Input thanh tìm kiếm */
+#search {
+  padding-left: 40px; /* Chừa khoảng trống để không đè lên biểu tượng */
+  height: 40px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  box-shadow: none;
+}
+
+/* Hiệu ứng khi focus vào ô tìm kiếm */
+#search:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.4);
+}
+
+/* Kết quả tìm kiếm */
+#search_result {
+  max-width: 400px;
+  width: 100%;
+}
+/* Navbar tổng thể */
+nav.navbar {
+  background-color: #ffffff; /* Nền trắng */
+  border-bottom: 1px solid #ddd; /* Viền mỏng phía dưới */
+  padding: 10px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ */
+}
+
+/* Logo */
+.navbar-brand img {
+  height: 30px;
+}
+
+/* Navbar menu chính */
+.navbar-nav {
+  align-items: center;
+}
+
+/* Các mục trong navbar */
+.nav-item .nav-link {
+  font-size: 1.25rem; /* Kích thước biểu tượng */
+  color: #555; /* Màu biểu tượng mặc định */
+  transition: color 0.3s ease-in-out;
+  position: relative; /* Để đặt badge */
+}
+
+/* Hiệu ứng hover cho các biểu tượng */
+.nav-item .nav-link:hover {
+  color: #007bff; /* Chuyển sang màu xanh */
+}
+
+/* Badge thông báo */
+.nav-item .badge {
+  font-size: 0.7rem;
+  position: absolute;
+  top: -5px; /* Đặt phía trên biểu tượng */
+  right: -10px; /* Đặt sang bên phải */
+  min-width: 18px;
+  min-height: 18px;
+  line-height: 1.1;
+  text-align: center;
+  padding: 2px 5px;
+}
+
+/* Avatar trong dropdown */
+.nav-item.dropdown .nav-link img {
+  border: 2px solid #ddd; /* Viền mỏng */
+  border-radius: 50%; /* Bo tròn */
+  height: 35px;
+  width: 35px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+/* Hiệu ứng hover avatar */
+.nav-item.dropdown .nav-link img:hover {
+  transform: scale(1.1); /* Phóng to nhẹ khi hover */
+}
+
+/* Dropdown menu */
+.nav-item.dropdown .dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Dropdown menu item */
+.nav-item.dropdown .dropdown-menu .dropdown-item {
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  color: #555;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* Hiệu ứng hover dropdown item */
+.nav-item.dropdown .dropdown-menu .dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #007bff;
+}
+
+/* House icon và các mục khác */
+.nav-item i {
+  transition: color 0.3s;
+}
+
+/* Khi hover icon */
+.nav-item:hover i {
+  color: #007bff;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Container của từng bình luận */
+.comment-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 10px 15px;
+  border-bottom: 1px solid #ddd;
+  background-color: #f9f9f9; /* Màu nền nhạt */
+  border-radius: 5px;
+  margin-bottom: 8px;
+  transition: background-color 0.3s ease; /* Hiệu ứng hover */
+}
+
+.comment-item:hover {
+  background-color: #f1f1f1; /* Thay đổi màu khi hover */
+}
+
+/* Ảnh đại diện */
+.comment-item img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 50%; /* Bo tròn hình ảnh */
+  border: 2px solid #007bff; /* Viền xanh dương */
+  margin-right: 10px; /* Khoảng cách giữa ảnh và nội dung */
+}
+
+/* Nội dung bình luận */
+.comment-item h6 {
+  font-size: 14px;
+  margin: 0;
+  color: #333; /* Màu chữ chính */
+  font-weight: bold;
+}
+
+.comment-item p {
+  font-size: 12px;
+  margin: 2px 0 0 0; /* Giảm khoảng cách trên/dưới */
+  color: #6c757d; /* Màu chữ phụ (xám nhạt) */
+}
+
+/* Link username */
+.comment-item h6 a {
+  color: #007bff; /* Màu xanh dương */
+  text-decoration: none;
+}
+
+.comment-item h6 a:hover {
+  text-decoration: underline; /* Gạch dưới khi hover */
+}
+
+/* Dropdown (ba chấm) */
+.comment-item .dropdown i {
+  font-size: 18px; /* Kích thước biểu tượng */
+  color: #333; /* Màu biểu tượng */
+}
+
+.comment-item .dropdown i:hover {
+  color: #007bff; /* Màu xanh khi hover */
+  cursor: pointer;
+}
+
+/* Dropdown menu */
+.comment-item .dropdown-menu {
+  font-size: 14px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng */
+}
+
+.comment-item .dropdown-menu a {
+  color: #333; /* Màu chữ trong menu */
+  text-decoration: none;
+}
+
+.comment-item .dropdown-menu a:hover {
+  background-color: #f1f1f1; /* Màu nền khi hover */
+  color: #007bff; /* Đổi màu chữ */
+}
+
+/* Đoạn bình luận dài bị ẩn */
+.comment-item .d-none {
+  display: none !important;
+}
+
+
+
+/* Biểu tượng tìm kiếm */
+#searchform {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+}
+
+#searchform .bi-search {
+  font-size: 1.2rem;
+  left: 10px;
+  color: #6c757d;
+}
+
+#search {
+  padding-left: 2.5rem; /* Tạo không gian cho biểu tượng tìm kiếm */
+  border-radius: 50px;
+  border: 1px solid #ddd;
+  transition: all 0.3s ease;
+}
+
+#search:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
+}
+
+/* Hộp kết quả tìm kiếm */
+#search_result {
+  display: none; /* Ẩn mặc định */
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 999;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Hiển thị hộp tìm kiếm khi có nội dung */
+#search_result.show {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Nút đóng */
+#search_result .btn-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.9rem;
+  color: #6c757d;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+#search_result .btn-close:hover {
+  color: #000;
+}
+
+/* Nội dung kết quả tìm kiếm */
+#sra {
+  padding: 10px 0;
+}
+
+#sra p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6c757d;
+  text-align: center;
+}
+
+#sra .result-item {
+  padding: 8px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#sra .result-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Kích thước cuộn */
+#search_result::-webkit-scrollbar {
+  width: 8px;
+}
+
+#search_result::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 8px;
+}
+
+#search_result::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
+}
+
+.post-image {
+  max-width: 100%;
+  height: auto;
+  display: block; /* Ensures the image behaves as a block element */
+  object-fit: contain; /* Ensures the entire image is visible within its bounds */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
