@@ -20,7 +20,7 @@ Handbook là một ứng dụng mạng xã hội cho phép người dùng kết 
 
 1.  **Sao chép kho lưu trữ:**
     ```bash
-    git clone https://github.com/your-username/handbook.git
+    git clone https://github.com/dinhvien04/MangXaHoi.git
     ```
 2.  **Nhập cơ sở dữ liệu:**
     -   Tạo một cơ sở dữ liệu mới có tên `handbook`.
@@ -31,7 +31,7 @@ Handbook là một ứng dụng mạng xã hội cho phép người dùng kết 
     -   Mở `assets/php/smtp_config.php` và cập nhật thông tin đăng nhập email.
 5.  **Chạy ứng dụng:**
     -   Đặt dự án vào thư mục gốc của máy chủ web của bạn (ví dụ: `htdocs` cho XAMPP).
-    -   Mở trình duyệt web của bạn và điều hướng đến `http://localhost/Tuongtac`.
+    -   Mở trình duyệt web của bạn và điều hướng đến `http://localhost/MangXaHoi`.
 
 ## 💻 Sử dụng
 
@@ -43,7 +43,7 @@ Handbook là một ứng dụng mạng xã hội cho phép người dùng kết 
 
 ## 🔒 Bảng quản trị
 
--   **Truy cập:** `http://localhost/Tuongtac/admin`
+-   **Truy cập:** `http://localhost/MangXaHoi/admin`
 -   **Đăng nhập:** Sử dụng thông tin đăng nhập quản trị viên của bạn để đăng nhập.
 -   **Bảng điều khiển:** Xem thống kê về ứng dụng.
 -   **Quản lý người dùng:** Xác minh, chặn và bỏ chặn người dùng.
