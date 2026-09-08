@@ -1,231 +1,164 @@
 <?php
 require_once 'functions.php';
-// Gửi tin nhắn
-if (isset($_GET['sendmessage'])) {
-    if (sendMessage($_POST['user_id'], $_POST['msg'])) {
-        $response['status'] = true;
-    } else {
-        $response['status'] = false;
-    }
 
-    echo json_encode($response);
+header('Content-Type: application/json; charset=utf-8');
+
+if (empty($_SESSION['Auth']) || empty($_SESSION['userdata']['id'])) {
+    http_response_code(403);
+    echo json_encode(['status' => false, 'message' => 'Unauthorized']);
+    exit();
 }
-// hiển thị danh sách các tin nhắn
+
+function e($value)
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
+if (isset($_GET['sendmessage'])) {
+    echo json_encode(['status' => sendMessage($_POST['user_id'] ?? 0, $_POST['msg'] ?? '')]);
+    exit();
+}
+
 if (isset($_GET['getmessages'])) {
     $chats = getAllMessages();
-    $chatlist = "";
-    // echo "<pre>";
-    // print_r($chats);
+    $chatlist = '';
+
     foreach ($chats as $chat) {
-        $ch_user = getUser($chat['user_id']);
-
-
-        $seen = false;
-        if ($chat['messages'][0]['read_status'] == 1 || $chat['messages'][0]['from_user_id'] == $_SESSION['userdata']['id']) {
-            $seen = true;
+        if (empty($chat['messages'])) {
+            continue;
         }
-        $chatlist .= '  
-    <div class="d-flex justify-content-between border-bottom chatlist_item" data-bs-toggle="modal" data-bs-target="#chatbox" onclick="popchat(' . $chat['user_id'] . ')" >
-                        <div class="d-flex align-items-center p-2">
-                            <div><img src="assets/images/profile/' . $ch_user['profile_pic'] . '" alt="" height="40" width="40" class="rounded-circle border">
-                            </div>
-                            <div>&nbsp;&nbsp;</div>
-                            <div class="d-flex flex-column justify-content-center" >
-                                <a href="#" class="text-decoration-none text-dark"><h6 style="margin: 0px;font-size: small;">' . $ch_user['first_name'] . ' ' . $ch_user['last_name'] . '</h6></a>
-                                <p style="margin:0px;font-size:small" class="">' . $chat['messages'][0]['msg'] . '</p>
-                                <time style="font-size:small" class="timeago text-small" datetime="' . $chat['messages'][0]['created_at'] . '">' . gettime($chat['messages'][0]['created_at']) . '</time>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center">
-      
-                          <div class="p-1 bg-primary rounded-circle ' . ($seen ? 'd-none' : '') . '"></div>
-    
+        $chatUser = getUser($chat['user_id']);
+        if (!$chatUser) {
+            continue;
+        }
 
-    
-
-    
-    
-                        </div>
-                    </div>';
+        $latest = $chat['messages'][0];
+        $seen = (int) $latest['read_status'] === 1 || (int) $latest['from_user_id'] === (int) $_SESSION['userdata']['id'];
+        $chatlist .= '<div class="d-flex justify-content-between border-bottom chatlist_item" data-bs-toggle="modal" data-bs-target="#chatbox" onclick="popchat(' . (int) $chat['user_id'] . ')">
+            <div class="d-flex align-items-center p-2">
+                <div><img src="assets/images/profile/' . e($chatUser['profile_pic']) . '" alt="" height="40" width="40" class="rounded-circle border"></div>
+                <div>&nbsp;&nbsp;</div>
+                <div class="d-flex flex-column justify-content-center">
+                    <a href="#" class="text-decoration-none text-dark"><h6 style="margin:0;font-size:small;">' . e($chatUser['first_name'] . ' ' . $chatUser['last_name']) . '</h6></a>
+                    <p style="margin:0;font-size:small">' . e($latest['msg']) . '</p>
+                    <time style="font-size:small" class="timeago text-small" datetime="' . e($latest['created_at']) . '">' . e(gettime($latest['created_at'])) . '</time>
+                </div>
+            </div>
+            <div class="d-flex align-items-center"><div class="p-1 bg-primary rounded-circle ' . ($seen ? 'd-none' : '') . '"></div></div>
+        </div>';
     }
-    $json['chatlist'] = $chatlist;
 
+    $json = [
+        'chatlist' => $chatlist,
+        'newmsgcount' => newMsgCount(),
+        'blocked' => false,
+        'chat' => ['msgs' => '', 'userdata' => null],
+    ];
 
+    $chatterId = isset($_POST['chatter_id']) ? (int) $_POST['chatter_id'] : 0;
+    if ($chatterId > 0) {
+        $messages = getMessages($chatterId);
+        $json['blocked'] = (bool) checkBS($chatterId);
+        updateMessageReadStatus($chatterId);
 
-    if (isset($_POST['chatter_id']) && $_POST['chatter_id'] != 0) {
-        $messages = getMessages($_POST['chatter_id']);
-        $chatmsg = "";
-        if (checkBS($_POST['chatter_id'])) {
-            $json['blocked'] = true;
-        } else {
-            $json['blocked'] = false;
-        }
-        updateMessageReadStatus($_POST['chatter_id']);
-
-        foreach ($messages as $cm) {
-            if ($cm['from_user_id'] == $_SESSION['userdata']['id']) {
-                $cl1 = 'align-self-end bg-primary text-light';
-                $cl2 = 'text-light';
-            } else {
-                $cl1 = '';
-                $cl2 = 'text-muted';
-            }
-
-            $chatmsg .= ' <div class="py-2 px-3 border rounded shadow-sm col-8 d-inline-block ' . $cl1 . '">' . $cm['msg'] . '<br>
-    <span style="font-size:small" class="' . $cl2 . '">' . gettime($cm['created_at']) . '</span>
-</div>';
+        $chatmsg = '';
+        foreach ($messages as $message) {
+            $mine = (int) $message['from_user_id'] === (int) $_SESSION['userdata']['id'];
+            $class1 = $mine ? 'align-self-end bg-primary text-light' : '';
+            $class2 = $mine ? 'text-light' : 'text-muted';
+            $chatmsg .= '<div class="py-2 px-3 border rounded shadow-sm col-8 d-inline-block ' . $class1 . '">' . e($message['msg']) . '<br>
+                <span style="font-size:small" class="' . $class2 . '">' . e(gettime($message['created_at'])) . '</span>
+            </div>';
         }
         $json['chat']['msgs'] = $chatmsg;
-        $json['chat']['userdata'] = getUser($_POST['chatter_id']);
+        $json['chat']['userdata'] = getUser($chatterId);
     } else {
-        $json['chat']['msgs'] = '<div class="spinner-border text-center" role="status">
-</div>';
+        $json['chat']['msgs'] = '<div class="spinner-border text-center" role="status"></div>';
     }
 
-    $json['newmsgcount'] = newMsgCount();
     echo json_encode($json);
+    exit();
 }
 
-// 
 if (isset($_GET['unblock'])) {
-    $user_id = $_POST['user_id'];
-    if (unblockUser($user_id)) {
-        $response['status'] = true;
-    } else {
-        $response['status'] = false;
-    }
-
-    echo json_encode($response);
+    echo json_encode(['status' => unblockUser($_POST['user_id'] ?? 0)]);
+    exit();
 }
 
-
-
-// Hiển thị thông báo khi chưa đọc
 if (isset($_GET['notread'])) {
-    if (setNotificationStatusAsRead()) {
-        $response['status'] = true;
-    } else {
-        $response['status'] = false;
-    }
-    echo json_encode($response);
+    echo json_encode(['status' => setNotificationStatusAsRead()]);
+    exit();
 }
 
-// Theo dõi người dùng
 if (isset($_GET['follow'])) {
-    $user_id = $_POST['user_id'];
-
-
-    if (followUser($user_id)) {
-        $response['status'] = true;
-    } else {
-        $response['status'] = false;
-    }
-
-    echo json_encode($response);
+    echo json_encode(['status' => followUser($_POST['user_id'] ?? 0)]);
+    exit();
 }
-// Hủy theo dõi người dùng
+
 if (isset($_GET['unfollow'])) {
-    $user_id = $_POST['user_id'];
-
-
-    if (unfollowUser($user_id)) {
-        $response['status'] = true;
-    } else {
-        $response['status'] = false;
-    }
-
-    echo json_encode($response);
+    echo json_encode(['status' => unfollowUser($_POST['user_id'] ?? 0)]);
+    exit();
 }
 
-// Thích bài đăng
 if (isset($_GET['like'])) {
-    $post_id = $_POST['post_id'];
-
-    if (!checkLikeStatus($post_id)) {
-        if (like($post_id)) {
-            $response['status'] = true;
-        } else {
-            $response['status'] = false;
-        }
-
-        echo json_encode($response);
-    }
+    $postId = (int) ($_POST['post_id'] ?? 0);
+    echo json_encode(['status' => $postId > 0 && !checkLikeStatus($postId) ? like($postId) : false]);
+    exit();
 }
 
-// Hủy lượt thích
 if (isset($_GET['unlike'])) {
-    $post_id = $_POST['post_id'];
-
-    if (checkLikeStatus($post_id)) {
-        if (unlike($post_id)) {
-            $response['status'] = true;
-        } else {
-            $response['status'] = false;
-        }
-
-        echo json_encode($response);
-    }
+    $postId = (int) ($_POST['post_id'] ?? 0);
+    echo json_encode(['status' => $postId > 0 && checkLikeStatus($postId) ? unlike($postId) : false]);
+    exit();
 }
 
-// Thêm comment
 if (isset($_GET['addcomment'])) {
-    $post_id = $_POST['post_id'];
-    $comment = $_POST['comment'];
+    $postId = (int) ($_POST['post_id'] ?? 0);
+    $comment = trim((string) ($_POST['comment'] ?? ''));
+    $response = ['status' => false];
 
-    if (addComment($post_id, $comment)) {
-        $cuser = getUser($_SESSION['userdata']['id']);
-        $time = date("Y-m-d H:i:s");
+    if ($postId > 0 && $comment !== '' && addComment($postId, $comment)) {
+        $currentUser = getUser($_SESSION['userdata']['id']);
         $response['status'] = true;
         $response['comment'] = '<div class="d-flex align-items-center p-2">
-            <div><img src="assets/images/profile/' . $cuser['profile_pic'] . '" alt="" height="40" class="rounded-circle border">
-            </div>
+            <div><img src="assets/images/profile/' . e($currentUser['profile_pic']) . '" alt="" height="40" class="rounded-circle border"></div>
             <div>&nbsp;&nbsp;&nbsp;</div>
             <div class="d-flex flex-column justify-content-start align-items-start">
-                <h6 style="margin: 0px;"><a href="?u=' . $cuser['username'] . '" class="text-decoration-none text-muted">@' . $cuser['username'] . '</a> - ' . $_POST['comment'] . '</h6>
-                <p style="margin:0px;" class="text-muted" style="font-size:small">(just now)</p>
+                <h6 style="margin:0;"><a href="?u=' . rawurlencode($currentUser['username']) . '" class="text-decoration-none text-muted">@' . e($currentUser['username']) . '</a> - ' . e($comment) . '</h6>
+                <p style="margin:0;" class="text-muted">(vừa xong)</p>
             </div>
         </div>';
-    } else {
-        $response['status'] = false;
     }
 
     echo json_encode($response);
+    exit();
 }
 
-// Tìm kiếm người dùng
 if (isset($_GET['search'])) {
-    $keyword = $_POST['keyword'];
-    $data = searchUser($keyword);
-    $users = "";
-    if (count($data) > 0) {
-        $response['status'] = true;
-
-
-
-        foreach ($data as $fuser) {
-            $fbtn = '';
-            $users .= ' <div class="d-flex justify-content-between">
-                            <div class="d-flex align-items-center p-2">
-                                <div><img src="assets/images/profile/' . $fuser['profile_pic'] . '" alt="" height="40" class="rounded-circle border">
-                                </div>
-                                <div>&nbsp;&nbsp;</div>
-                                <div class="d-flex flex-column justify-content-center">
-                                    <a href="?u=' . $fuser['username'] . '" class="text-decoration-none text-dark"><h6 style="margin: 0px;font-size: small;">' . $fuser['first_name'] . ' ' . $fuser['last_name'] . '</h6></a>
-                                    <p style="margin:0px;font-size:small" class="text-muted">@' . $fuser['username'] . '</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center">
-                              ' . $fbtn . '
-        
-                            </div>
-                        </div>';
-        }
-
-
-        $response['users'] = $users;
-    } else {
-        $response['status'] = false;
+    $data = searchUser($_POST['keyword'] ?? '');
+    if (!$data) {
+        echo json_encode(['status' => false]);
+        exit();
     }
 
-    echo json_encode($response);
+    $users = '';
+    foreach ($data as $user) {
+        $users .= '<div class="d-flex justify-content-between">
+            <div class="d-flex align-items-center p-2">
+                <div><img src="assets/images/profile/' . e($user['profile_pic']) . '" alt="" height="40" class="rounded-circle border"></div>
+                <div>&nbsp;&nbsp;</div>
+                <div class="d-flex flex-column justify-content-center">
+                    <a href="?u=' . rawurlencode($user['username']) . '" class="text-decoration-none text-dark"><h6 style="margin:0;font-size:small;">' . e($user['first_name'] . ' ' . $user['last_name']) . '</h6></a>
+                    <p style="margin:0;font-size:small" class="text-muted">@' . e($user['username']) . '</p>
+                </div>
+            </div>
+        </div>';
+    }
+
+    echo json_encode(['status' => true, 'users' => $users]);
+    exit();
 }
+
+http_response_code(400);
+echo json_encode(['status' => false, 'message' => 'Invalid action']);
+?>
