@@ -1,102 +1,122 @@
 <?php
-    require_once('admin_functions.php');
-    require_once '../../assets/php/send_code.php';
+require_once 'admin_functions.php';
+require_once '../../assets/php/send_code.php';
 
-
-
-    if (isset($_GET['login'])) {
-        if (checkAdminUser($_POST)['status']) {
-            $_SESSION['admin_auth'] = checkAdminUser($_POST)['user_id'];
-            header('Location:../');
-        } else {
-            $_SESSION['error'] = [
-                "field" => "useraccess",
-                "msg" => "Incorrect email/password",
-            ];
-            header('Location:../');
-        }
-    }
-    if (isset($_GET['logout'])) {
-        session_destroy();
+if (isset($_GET['login'])) {
+    $auth = checkAdminUser($_POST);
+    if ($auth['status']) {
+        session_regenerate_id(true);
+        $_SESSION['admin_auth'] = $auth['user_id'];
         header('Location:../');
-    }
-    // điều hướng sự kiện Edit profile
-    if (isset($_GET['updateprofile'])) {
-        if (updateAdmin($_POST)) {
-            $_SESSION['error'] = [
-                "field" => "adminprofile",
-                "msg" => "Cập nhật thành công !",
-            ];
-            header('Location:../?edit_profile');
-        } else {
-            $_SESSION['error'] = [
-                "field" => "adminprofile",
-                "msg" => "something went wrong, try again later",
-            ];
-            header('Location:../?edit_profile');
-        }
+        exit();
     }
 
-    if (isset($_GET['userlogin']) && isset($_SESSION['admin_auth'])) {
-
-
-        $response = loginUserByAdmin($_GET['userlogin']);
-
-
-        if ($response['status']) {
-            $_SESSION['Auth'] = true;
-            $_SESSION['userdata'] = $response['user'];
-
-            if ($response['user']['ac_status'] == 0) {
-                $_SESSION['code'] = $code = rand(111111, 999999);
-                sendCode($response['user']['email'], 'Verify Your Email', $code);
-            }
-
-            header("location:../../");
-        }
-    }
-
-    // Xóa bài đăng
-    if (isset($_GET['delete_post'])) {
-        $post_id = $_GET['delete_post'];
-        deletePost($post_id);
-        header('Location: ../?manage');
-    }
-
-
-// Check if delete_comment is set
-if (isset($_GET['delete_comment'])) {
-    $comment_id = $_GET['delete_comment'];
-    $post_id = $_GET['post_id'];
-
-    // Delete the comment
-    $sql = "DELETE FROM comments WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    if ($stmt->execute([$comment_id])) {
-        header("Location: view_comments.php?post_id=" . $post_id . "&success=Comment deleted");
-        exit;
-    } else {
-        header("Location: view_comments.php?post_id=" . $post_id . "&error=Failed to delete comment");
-        exit;
-    }
-}
-// Xử lý duyệt bài đăng khi nút "Duyệt" được bấm
-if (isset($_GET['approve_post'])) {
-    $post_id = intval($_GET['approve_post']); // Lấy ID bài đăng cần duyệt
-
-    // Cập nhật trạng thái bài đăng thành đã duyệt
-    $sql = "UPDATE posts SET is_approved = 1, is_reported = 0 WHERE id = ?";
-    $stmt = $db->prepare($sql);
-
-    if ($stmt->execute([$post_id])) {
-        // Chuyển hướng về trang quản lý với thông báo thành công
-        header("Location: ../?manage&success=Post approved successfully");
-    } else {
-        // Chuyển hướng về trang quản lý với thông báo lỗi
-        header("Location: ../?manage&error=Failed to approve post");
-    }
+    $_SESSION['error'] = [
+        'field' => 'useraccess',
+        'msg' => 'Email hoặc mật khẩu quản trị không đúng',
+    ];
+    header('Location:../pages/login.php');
     exit();
 }
 
+if (empty($_SESSION['admin_auth'])) {
+    http_response_code(403);
+    exit('Bạn không có quyền thực hiện thao tác này.');
+}
 
+if (isset($_GET['logout'])) {
+    unset($_SESSION['admin_auth']);
+    header('Location:../pages/login.php');
+    exit();
+}
+
+if (isset($_GET['updateprofile'])) {
+    if (updateAdmin($_POST)) {
+        $_SESSION['error'] = [
+            'field' => 'adminprofile',
+            'msg' => 'Cập nhật thành công!',
+        ];
+    } else {
+        $_SESSION['error'] = [
+            'field' => 'adminprofile',
+            'msg' => 'Không thể cập nhật thông tin. Vui lòng kiểm tra dữ liệu và thử lại.',
+        ];
+    }
+    header('Location:../?edit_profile');
+    exit();
+}
+
+if (isset($_GET['userlogin'])) {
+    $response = loginUserByAdmin($_GET['userlogin']);
+    if (!$response['status']) {
+        http_response_code(404);
+        exit('Không tìm thấy người dùng.');
+    }
+
+    session_regenerate_id(true);
+    $_SESSION['Auth'] = true;
+    $_SESSION['userdata'] = $response['user'];
+
+    if ((int) $response['user']['ac_status'] === 0) {
+        $_SESSION['code'] = $code = random_int(111111, 999999);
+        sendCode($response['user']['email'], 'Xác minh email của bạn', $code);
+    }
+
+    header('Location:../../');
+    exit();
+}
+
+if (isset($_GET['delete_post'])) {
+    $postId = (int) $_GET['delete_post'];
+    if (!deletePost($postId)) {
+        $_SESSION['error'] = [
+            'field' => 'managepost',
+            'msg' => 'Không thể xóa bài đăng.',
+        ];
+    }
+    header('Location:../?manage');
+    exit();
+}
+
+if (isset($_GET['delete_comment'])) {
+    $commentId = (int) $_GET['delete_comment'];
+    if ($commentId <= 0) {
+        http_response_code(400);
+        exit('ID bình luận không hợp lệ.');
+    }
+
+    $stmt = $db->prepare('DELETE FROM comments WHERE id = ?');
+    $stmt->bind_param('i', $commentId);
+    $ok = $stmt->execute();
+    $stmt->close();
+
+    if (!$ok) {
+        $_SESSION['error'] = [
+            'field' => 'managepost',
+            'msg' => 'Không thể xóa bình luận.',
+        ];
+    }
+    header('Location:../?manage');
+    exit();
+}
+
+if (isset($_GET['approve_post'])) {
+    $postId = (int) $_GET['approve_post'];
+    if ($postId <= 0) {
+        http_response_code(400);
+        exit('ID bài đăng không hợp lệ.');
+    }
+
+    $stmt = $db->prepare('UPDATE posts SET is_approved = 1, is_reported = 0 WHERE id = ?');
+    $stmt->bind_param('i', $postId);
+    $ok = $stmt->execute();
+    $stmt->close();
+
+    $status = $ok ? 'success=Post approved successfully' : 'error=Failed to approve post';
+    header('Location:../?manage&' . $status);
+    exit();
+}
+
+http_response_code(400);
+echo 'Yêu cầu không hợp lệ.';
 ?>
