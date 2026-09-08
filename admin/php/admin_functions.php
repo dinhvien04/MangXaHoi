@@ -1,274 +1,253 @@
 <?php
 require_once($function_url ?? '../../assets/php/functions.php');
 
-//Kiểm tra tài khoản Admin //LOGIN
-function checkAdminUser($login_data)
+function checkAdminUser($loginData)
 {
     global $db;
-    $email = $login_data['email'];
-    $password = $login_data['password'];
-    $role = $login_data['role'];
-    
-    // Thêm điều kiện kiểm tra role là 'Admin'
-    $query = " SELECT * FROM users WHERE email='$email' AND password='$password' AND role='Admin' ";
-    $run = mysqli_query($db, $query);
+    $email = trim((string) ($loginData['email'] ?? ''));
+    $plainPassword = (string) ($loginData['password'] ?? '');
+    $data = ['status' => false, 'user' => []];
 
-    // Lấy thông tin người dùng nếu tồn tại
-    $data['user'] = mysqli_fetch_assoc($run) ?? array();
-
-    // Kiểm tra nếu có người dùng và role là Admin
-    if (count($data['user']) > 0) {
-        $data['status'] = true;
-        $data['user_id'] = $data['user']['id'];
-        $data['role'] = $data['user']['role'];
-    } else {
-        $data['status'] = false;
+    if ($email === '' || $plainPassword === '') {
+        return $data;
     }
 
+    $stmt = $db->prepare("SELECT * FROM users WHERE email = ? AND role = 'Admin' LIMIT 1");
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    $user = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$user || !passwordMatches($plainPassword, $user['password'])) {
+        return $data;
+    }
+
+    $user['password'] = upgradePasswordHash((int) $user['id'], $plainPassword, $user['password']);
+    $user['password_text'] = '';
+    $data['status'] = true;
+    $data['user'] = $user;
+    $data['user_id'] = (int) $user['id'];
+    $data['role'] = 'Admin';
     return $data;
 }
 
-
-function getAdmin($user_id)//LOGIN
+function getAdmin($userId)
 {
     global $db;
-    $query = "SELECT * FROM users WHERE id=$user_id";
-    $run = mysqli_query($db, $query);
-    return mysqli_fetch_assoc($run);
+    $userId = (int) $userId;
+    $stmt = $db->prepare("SELECT * FROM users WHERE id = ? AND role = 'Admin' LIMIT 1");
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    return $row ?: null;
 }
 
-
-// QUẢN LÝ NGƯỜI DÙNG (QLND)
-
-function getUsersList($searchKeyword = '')//Quản lý người dùng
+function getUsersList($searchKeyword = '')
 {
-    // Kết nối cơ sở dữ liệu (giả sử bạn đã có kết nối $conn)
     global $db;
+    $searchKeyword = trim((string) $searchKeyword);
 
-    // Truy vấn SQL cơ bản
-    $sql = "SELECT * FROM users";
-
-    // Nếu có từ khóa tìm kiếm, thêm điều kiện WHERE
-    if (!empty($searchKeyword)) {
-        $searchKeyword = mysqli_real_escape_string($db, $searchKeyword);
-        $sql .= " WHERE first_name LIKE '%$searchKeyword%' OR last_name LIKE '%$searchKeyword%' OR username LIKE '%$searchKeyword%' OR email LIKE '%$searchKeyword%'";
+    if ($searchKeyword === '') {
+        $result = $db->query("SELECT * FROM users ORDER BY id DESC");
+        return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
     }
 
-    // Thực thi truy vấn
-    $result = mysqli_query($db, $sql);
-
-    // Xử lý kết quả
-    $users = [];
-    if ($result && mysqli_num_rows($result) > 0) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            $users[] = $row;
-        }
-    }
-    return $users;
+    $like = '%' . $searchKeyword . '%';
+    $stmt = $db->prepare("SELECT * FROM users WHERE first_name LIKE ? OR last_name LIKE ? OR username LIKE ? OR email LIKE ? ORDER BY id DESC");
+    $stmt->bind_param('ssss', $like, $like, $like, $like);
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return $rows;
 }
 
-
-// Xâm nhập vào tài khoản người dùng
-function loginUserByAdmin($email)//Quẩn lý người dùng
+function loginUserByAdmin($email)
 {
     global $db;
+    $email = trim((string) $email);
+    $data = ['status' => false, 'user' => []];
 
-    $query = "SELECT * FROM users WHERE email='$email'";
-    $run = mysqli_query($db, $query);
-    $data['user'] = mysqli_fetch_assoc($run) ?? array();
-    if (count($data['user']) > 0) {
+    if (empty($_SESSION['admin_auth'])) {
+        return $data;
+    }
+
+    $stmt = $db->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    $user = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if ($user) {
         $data['status'] = true;
-    } else {
-        $data['status'] = false;
+        $data['user'] = $user;
     }
-
     return $data;
 }
 
-function totalCommentsCount()//Quẩn lý người dùng
+function totalCommentsCount()
 {
     global $db;
-    $query = "SELECT count(*) as row FROM comments";
-    $run = mysqli_query($db, $query);
-    return mysqli_fetch_assoc($run)['row'];
+    $row = $db->query("SELECT COUNT(*) AS row FROM comments")->fetch_assoc();
+    return (int) ($row['row'] ?? 0);
 }
 
-function totalPostsCount()//Quẩn lý người dùng
+function totalPostsCount()
 {
     global $db;
-    $query = "SELECT count(*) as row FROM posts";
-    $run = mysqli_query($db, $query);
-    return mysqli_fetch_assoc($run)['row'];
+    $row = $db->query("SELECT COUNT(*) AS row FROM posts")->fetch_assoc();
+    return (int) ($row['row'] ?? 0);
 }
 
-function totalUsersCount()//Quẩn lý người dùng
+function totalUsersCount()
 {
     global $db;
-    $query = "SELECT count(*) as row FROM users";
-    $run = mysqli_query($db, $query);
-    return mysqli_fetch_assoc($run)['row'];
+    $row = $db->query("SELECT COUNT(*) AS row FROM users")->fetch_assoc();
+    return (int) ($row['row'] ?? 0);
 }
 
-function totalLikesCount()//Quẩn lý người dùng
+function totalLikesCount()
 {
     global $db;
-    $query = "SELECT count(*) as row FROM likes";
-    $run = mysqli_query($db, $query);
-    return mysqli_fetch_assoc($run)['row'];
+    $row = $db->query("SELECT COUNT(*) AS row FROM likes")->fetch_assoc();
+    return (int) ($row['row'] ?? 0);
 }
 
-
-function blockUserByAdmin($user_id)//Quẩn lý người dùng
+function blockUserByAdmin($userId)
 {
     global $db;
-    $query = "UPDATE users SET ac_status=2 WHERE id=$user_id";
-    return mysqli_query($db, $query);
-}
-function unblockUserByAdmin($user_id)//Quẩn lý người dùng
-{
-    global $db;
-    $query = "UPDATE users SET ac_status=1 WHERE id=$user_id";
-    return mysqli_query($db, $query);
-}
-
-//CẬP NHẬT THÔNG TIN(CNTT)
-function updateAdmin($data)//Cập nhật thông tin
-{
-    global $db;
-    $user_id = $data['user_id'];
-    $first_name = $data['first_name'];
-    $last_name = $data['last_name'];
-    $email = $data['email'];
-    $password = $data['password'];
-    $role = $data['role'];
-    
-    // Cập nhật thông tin người dùng bao gồm role
-    $query = "UPDATE users 
-              SET first_name='$first_name',
-                  last_name='$last_name',
-                  email='$email',
-                  password='$password',
-                  role='$role'
-              WHERE id='$user_id'";
-
-    // Thực hiện truy vấn
-    $result = mysqli_query($db, $query);
-
-    // Kiểm tra và trả về kết quả
-    if ($result) {
-        return true; // Cập nhật thành công
-    } else {
-        return false; // Cập nhật thất bại
+    if (empty($_SESSION['admin_auth'])) {
+        return false;
     }
+    $userId = (int) $userId;
+    if ($userId <= 0 || $userId === (int) $_SESSION['admin_auth']) {
+        return false;
+    }
+    $stmt = $db->prepare("UPDATE users SET ac_status = 2 WHERE id = ? AND role != 'Admin'");
+    $stmt->bind_param('i', $userId);
+    $ok = $stmt->execute();
+    $stmt->close();
+    return $ok;
 }
 
-
-
-// QUẢN LÝ BÀI ĐĂNG (QLBD)
-function getPosts($search = '', $report_status = '') //Quản lý bài đăng
+function unblockUserByAdmin($userId)
 {
     global $db;
-    
-    // Câu lệnh SQL với JOIN giữa bảng posts và users
-    $query = "SELECT p.*, u.username FROM posts p
-              JOIN users u ON p.user_id = u.id
-              WHERE 1";
+    if (empty($_SESSION['admin_auth'])) {
+        return false;
+    }
+    $userId = (int) $userId;
+    $stmt = $db->prepare("UPDATE users SET ac_status = 1 WHERE id = ?");
+    $stmt->bind_param('i', $userId);
+    $ok = $stmt->execute();
+    $stmt->close();
+    return $ok;
+}
 
-    // Thêm điều kiện tìm kiếm nếu có
-    if (!empty($search)) {
-        $query .= " AND u.username LIKE CONCAT('%', ?, '%')";
+function updateAdmin($data)
+{
+    global $db;
+    if (empty($_SESSION['admin_auth'])) {
+        return false;
     }
 
-    // Thêm điều kiện báo cáo
-    if ($report_status == 'reported') {
+    $userId = (int) $_SESSION['admin_auth'];
+    $current = getAdmin($userId);
+    if (!$current) {
+        return false;
+    }
+
+    $firstName = trim((string) ($data['first_name'] ?? ''));
+    $lastName = trim((string) ($data['last_name'] ?? ''));
+    $email = trim((string) ($data['email'] ?? ''));
+    $providedPassword = (string) ($data['password'] ?? '');
+
+    if ($firstName === '' || $lastName === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+
+    $password = $current['password'];
+    if ($providedPassword !== '' && !hash_equals((string) $current['password'], $providedPassword)) {
+        $password = password_hash($providedPassword, PASSWORD_DEFAULT);
+    }
+
+    $stmt = $db->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, password = ?, password_text = '', role = 'Admin' WHERE id = ?");
+    $stmt->bind_param('ssssi', $firstName, $lastName, $email, $password, $userId);
+    $ok = $stmt->execute();
+    $stmt->close();
+    return $ok;
+}
+
+function getPosts($search = '', $reportStatus = '')
+{
+    global $db;
+    $search = trim((string) $search);
+    $reportStatus = (string) $reportStatus;
+
+    $query = "SELECT p.*, u.username FROM posts p JOIN users u ON p.user_id = u.id WHERE 1";
+    if ($search !== '') {
+        $query .= " AND (u.username LIKE CONCAT('%', ?, '%') OR p.post_text LIKE CONCAT('%', ?, '%'))";
+    }
+    if ($reportStatus === 'reported') {
         $query .= " AND p.is_reported = 1";
-    } elseif ($report_status == 'not_reported') {
+    } elseif ($reportStatus === 'not_reported') {
         $query .= " AND p.is_reported = 0";
     }
+    $query .= " ORDER BY p.id DESC";
 
     $stmt = $db->prepare($query);
-
-    // Ràng buộc giá trị tìm kiếm
-    if (!empty($search)) {
-        $stmt->bind_param('s', $search);
+    if ($search !== '') {
+        $stmt->bind_param('ss', $search, $search);
     }
-
     $stmt->execute();
-    $result = $stmt->get_result();
-
-    $posts = [];
-    while ($post = $result->fetch_assoc()) {
-        $posts[] = $post;
-    }
-
-    return $posts;
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return $rows;
 }
 
-
-
-function getLikesCount($post_id) //Quản lý bài đăng 
+function getLikesCount($postId)
 {
     global $db;
-
-    // Kiểm tra giá trị đầu vào
-    if (empty($post_id)) {
-        return 0; // Nếu không có post_id, trả về 0
+    $postId = (int) $postId;
+    if ($postId <= 0) {
+        return 0;
     }
-
-    // Truy vấn để đếm số lượng "like" theo post_id
-    $query = "SELECT COUNT(*) AS like_count FROM likes WHERE post_id = ?";
-    $stmt = $db->prepare($query);
-    $stmt->bind_param("i", $post_id); // Bind post_id kiểu số nguyên
+    $stmt = $db->prepare("SELECT COUNT(*) AS like_count FROM likes WHERE post_id = ?");
+    $stmt->bind_param('i', $postId);
     $stmt->execute();
-
-    // Lấy kết quả từ câu truy vấn
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-
-    return $row['like_count'] ?? 0; // Trả về số lượng like (hoặc 0 nếu không có dữ liệu)
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    return (int) ($row['like_count'] ?? 0);
 }
 
-function getCommentsCount($post_id) //Quản lý bài đăng 
+function getCommentsCount($postId)
 {
     global $db;
-
-    // Truy vấn để đếm số lượng bình luận theo post_id
-    $query = "SELECT COUNT(*) AS comment_count FROM comments WHERE post_id = ?";
-    $stmt = $db->prepare($query);
-    $stmt->bind_param("i", $post_id); // Bind post_id kiểu số nguyên
+    $postId = (int) $postId;
+    if ($postId <= 0) {
+        return 0;
+    }
+    $stmt = $db->prepare("SELECT COUNT(*) AS comment_count FROM comments WHERE post_id = ?");
+    $stmt->bind_param('i', $postId);
     $stmt->execute();
-
-    // Lấy kết quả từ câu truy vấn
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-
-    return $row['comment_count'] ?? 0; // Trả về số lượng bình luận (hoặc 0 nếu không có dữ liệu)
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    return (int) ($row['comment_count'] ?? 0);
 }
-function getCommentsAdmin($post_id) //Quản lý bài đăng 
+
+function getCommentsAdmin($postId)
 {
     global $db;
-
-    // Kiểm tra giá trị đầu vào
-    if (empty($post_id)) {
-        return []; // Nếu không có post_id, trả về mảng rỗng
+    $postId = (int) $postId;
+    if ($postId <= 0) {
+        return [];
     }
 
-    // Truy vấn để lấy tất cả comment cho bài đăng với post_id
-    $query = "SELECT comments.id, comments.comment, comments.created_at, users.username
-              FROM comments
-              JOIN users ON comments.user_id = users.id
-              WHERE comments.post_id = ?
-              ORDER BY comments.created_at DESC";
-    
-    $stmt = $db->prepare($query);
-    $stmt->bind_param("i", $post_id); // Bind post_id kiểu số nguyên
+    $stmt = $db->prepare("SELECT comments.id, comments.comment, comments.created_at, users.username FROM comments JOIN users ON comments.user_id = users.id WHERE comments.post_id = ? ORDER BY comments.created_at DESC");
+    $stmt->bind_param('i', $postId);
     $stmt->execute();
-
-    // Lấy kết quả từ câu truy vấn
-    $result = $stmt->get_result();
-    
-    // Lấy tất cả các comment dưới dạng mảng
-    $comments = $result->fetch_all(MYSQLI_ASSOC);
-
-    return $comments; // Trả về mảng chứa tất cả comment
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return $rows;
 }
+?>
