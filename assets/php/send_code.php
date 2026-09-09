@@ -2,11 +2,11 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require 'PHPMailer/src/Exception.php';
-require 'PHPMailer/src/PHPMailer.php';
-require 'PHPMailer/src/SMTP.php';
+require __DIR__ . '/PHPMailer/src/Exception.php';
+require __DIR__ . '/PHPMailer/src/PHPMailer.php';
+require __DIR__ . '/PHPMailer/src/SMTP.php';
 
-$smtpConfig = require 'smtp_config.php';
+$smtpConfig = require __DIR__ . '/smtp_config.php';
 $mail = new PHPMailer(true);
 
 function sendCode($email, $subject, $code)
