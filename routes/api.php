@@ -62,7 +62,7 @@ if (isset($_GET['getmessages'])) {
             </div>';
         }
         $json['chat']['msgs'] = $chatmsg;
-        $json['chat']['userdata'] = getUser($chatterId);
+        $json['chat']['userdata'] = publicUserData(getUser($chatterId));
     } else {
         $json['chat']['msgs'] = '<div class="spinner-border text-center" role="status"></div>';
     }
