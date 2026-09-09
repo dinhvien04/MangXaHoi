@@ -1,130 +1,72 @@
 # Handbook - Ứng dụng mạng xã hội
 
-Handbook là ứng dụng mạng xã hội viết bằng PHP/MySQL, hỗ trợ đăng ký, đăng nhập, xác minh email, bài đăng, like, bình luận, follow, block, tìm kiếm, thông báo, nhắn tin và trang quản trị.
-
-## Chức năng
-
-- Đăng ký, đăng nhập, đăng xuất.
-- Xác minh email bằng OTP và quên mật khẩu.
-- Xem và chỉnh sửa hồ sơ.
-- Tạo, chỉnh sửa, xóa và báo cáo bài viết.
-- Like / unlike và bình luận.
-- Follow / unfollow, block / unblock.
-- Tìm kiếm người dùng.
-- Thông báo tương tác.
-- Nhắn tin giữa người dùng.
-- Admin quản lý người dùng, bài viết và báo cáo.
+Handbook là ứng dụng mạng xã hội viết bằng PHP/MySQL. Hệ thống hỗ trợ đăng ký, đăng nhập, xác minh email bằng OTP, hồ sơ cá nhân, bài đăng, like, bình luận, follow, block, tìm kiếm, thông báo, nhắn tin và trang quản trị.
 
 ## Kiến trúc
 
-Project đã được refactor sang **feature-based architecture**. Mỗi chức năng có thư mục riêng:
+Dự án dùng kiến trúc **feature-based** đơn giản, tách rõ 3 phần:
 
 ```text
-app/
-├── Core/
-├── Auth/
-├── Users/
-├── Posts/
-├── Interactions/
-│   ├── Likes/
-│   ├── Comments/
-│   ├── Follow/
-│   └── Block/
-├── Messages/
-├── Notifications/
-├── Search/
-├── Admin/
-├── Shared/
-└── Support/
-
-routes/
-├── web.php
-├── user-actions.php
-├── api.php
-├── admin-actions.php
-└── admin-api.php
-
-config/
-└── database.php
-
-database/
-└── handbook.sql
-
-assets/js/
-├── app.js
-└── features/
-    ├── posts.js
-    ├── follow.js
-    ├── likes.js
-    ├── comments.js
-    ├── search.js
-    ├── notifications.js
-    └── messages.js
+MangXaHoi/
+├── backend/       # PHP nghiệp vụ, database, auth, API/action handlers
+├── frontend/      # Toàn bộ giao diện user/admin
+├── public/        # CSS, JavaScript, hình ảnh và AdminLTE
+├── admin/         # entry point /admin, không chứa giao diện/nghiệp vụ
+├── config/        # cấu hình database/SMTP
+├── database/      # schema/dữ liệu SQL
+└── index.php      # entry point cho user
 ```
 
-`index.php` chỉ còn là front controller. Các file cũ như `assets/php/functions.php`, `assets/php/actions.php` và `assets/php/ajax.php` được giữ làm compatibility wrapper để giao diện hiện tại chưa bị phá.
+Backend được chia theo chức năng (`auth`, `users`, `posts`, `interactions`, `messages`, `notifications`, `search`, `admin`) thay vì MVC nhiều tầng. Frontend không nằm trong backend.
 
-Xem giải thích đầy đủ trong **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+Xem chi tiết tại [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## Yêu cầu
+
+- PHP 7.4+ (khuyến nghị PHP 8.x)
+- MySQL/MariaDB
+- PHP extensions: `mysqli`, `fileinfo`
+- Apache/Nginx hoặc XAMPP/WAMP tương đương
 
 ## Cài đặt
 
-1. Clone repository:
-
-```bash
-git clone https://github.com/dinhvien04/MangXaHoi.git
-```
-
+1. Clone repository vào web root, ví dụ `htdocs/MangXaHoi`.
 2. Tạo database `handbook` và import `database/handbook.sql`.
+3. Database mặc định dùng `localhost`, user `root`, password rỗng. Có thể cấu hình bằng biến môi trường:
+   - `DB_HOST`
+   - `DB_NAME`
+   - `DB_USER`
+   - `DB_PASS`
+4. Để dùng OTP/email, copy `config/smtp.example.php` thành `config/smtp.php` và điền tài khoản SMTP. `config/smtp.php` đã được gitignore và không được commit credential thật.
+5. Mở `http://localhost/MangXaHoi/`.
+6. Trang quản trị: `http://localhost/MangXaHoi/admin/`.
 
-3. Database mặc định:
+## Chức năng chính
 
-```text
-host: localhost
-name: handbook
-user: root
-password: (trống)
-```
+### Người dùng
 
-Có thể thay bằng các biến môi trường `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`.
+- Đăng ký / đăng nhập / đăng xuất.
+- Xác minh email OTP, quên và đổi mật khẩu.
+- Xem/chỉnh sửa hồ sơ và ảnh đại diện.
+- Tạo, chỉnh sửa, xóa, báo cáo bài viết.
+- Like/unlike, bình luận.
+- Follow/unfollow, block/unblock.
+- Tìm kiếm người dùng.
+- Thông báo và nhắn tin.
 
-4. Tạo file `assets/php/smtp_config.php`:
+### Quản trị viên
 
-```php
-<?php
-return [
-    'username' => 'your-email@gmail.com',
-    'password' => 'your-app-password',
-];
-```
+- Đăng nhập admin.
+- Dashboard thống kê.
+- Tìm kiếm, xác minh, block/unblock, xóa người dùng.
+- Thay đổi vai trò User/Admin.
+- Cập nhật hồ sơ admin.
+- Tìm kiếm, duyệt và xóa bài đăng/bình luận.
 
-File này đã được `.gitignore` và không được commit credential thật.
+## Phát triển
 
-5. Đặt project trong thư mục web server, ví dụ `htdocs/MangXaHoi`, sau đó truy cập:
-
-```text
-http://localhost/MangXaHoi
-```
-
-Trang Admin:
-
-```text
-http://localhost/MangXaHoi/admin
-```
-
-## Công nghệ
-
-- PHP
-- MySQL / MariaDB
-- HTML / CSS / JavaScript
-- jQuery
-- Bootstrap
-- PHPMailer
-
-## Quy tắc code mới
-
-- Không viết nghiệp vụ mới trong `assets/php/functions.php`.
-- Không viết SQL trong template giao diện.
-- Chức năng nào thì code trong `app/<Feature>/` tương ứng.
-- Request/redirect/AJAX xử lý trong `routes/`.
-- JavaScript theo chức năng nằm trong `assets/js/features/`.
-- Thành phần dùng chung nằm trong `app/Core/`, `app/Shared/` hoặc `app/Support/`.
+- Nghiệp vụ PHP mới đặt trong `backend/<feature>/`.
+- UI mới đặt trong `frontend/user/` hoặc `frontend/admin/`.
+- CSS/JS/image phía trình duyệt đặt trong `public/`.
+- Không viết SQL trực tiếp trong template mới.
+- Không đưa mật khẩu database/SMTP thật lên GitHub.

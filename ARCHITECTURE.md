@@ -1,162 +1,172 @@
 # Kiến trúc dự án MangXaHoi
 
-Dự án được tổ chức theo **feature-based architecture**: code của từng chức năng nằm trong thư mục riêng thay vì dồn toàn bộ nghiệp vụ vào `functions.php`, `actions.php`, `ajax.php` và một file JavaScript lớn.
+## Mục tiêu
 
-## Cây thư mục chính
+Repository được tổ chức theo **feature-based architecture** với nguyên tắc quan trọng nhất: **frontend và backend tách riêng**. Dự án không dùng classic MVC nhiều tầng; một chức năng có thể được tìm thấy trực tiếp theo tên thư mục.
+
+## Cây thư mục
 
 ```text
 MangXaHoi/
-├── app/
+├── backend/
 │   ├── bootstrap.php
-│   ├── Core/
+│   ├── core/
 │   │   ├── database.php
 │   │   ├── forms.php
 │   │   ├── http.php
-│   │   ├── password.php
-│   │   └── view.php
-│   ├── Auth/
+│   │   └── password.php
+│   ├── auth/
 │   │   ├── functions.php
-│   │   └── views/
-│   ├── Users/
-│   │   ├── functions.php
-│   │   ├── presenters.php
-│   │   └── views/
-│   ├── Posts/
-│   │   ├── functions.php
-│   │   └── views/
-│   ├── Interactions/
-│   │   ├── Block/functions.php
-│   │   ├── Comments/functions.php
-│   │   ├── Follow/functions.php
-│   │   └── Likes/functions.php
-│   ├── Messages/functions.php
-│   ├── Notifications/functions.php
-│   ├── Search/functions.php
-│   ├── Admin/functions.php
-│   ├── Shared/views/
-│   └── Support/time.php
-├── routes/
-│   ├── web.php
-│   ├── user-actions.php
-│   ├── api.php
-│   ├── admin-actions.php
-│   └── admin-api.php
-├── config/
-│   └── database.php
-├── database/
-│   └── handbook.sql
-├── assets/
+│   │   └── mail/
+│   ├── users/
+│   ├── posts/
+│   ├── interactions/
+│   │   ├── block/
+│   │   ├── comments/
+│   │   ├── follow/
+│   │   └── likes/
+│   ├── messages/
+│   ├── notifications/
+│   ├── search/
+│   ├── admin/
+│   ├── support/
+│   └── http/
+│       ├── user-actions.php
+│       ├── api.php
+│       ├── admin-actions.php
+│       └── admin-api.php
+├── frontend/
+│   ├── render.php
+│   ├── router.php
+│   ├── layouts/
+│   ├── user/
+│   │   ├── auth/
+│   │   ├── profile/
+│   │   └── posts/
+│   └── admin/
+├── public/
 │   ├── css/
 │   ├── images/
 │   ├── js/
-│   │   ├── app.js
-│   │   └── features/
-│   │       ├── posts.js
-│   │       ├── follow.js
-│   │       ├── likes.js
-│   │       ├── comments.js
-│   │       ├── search.js
-│   │       ├── notifications.js
-│   │       └── messages.js
-│   ├── pages/        # template cũ, chỉ còn được gọi qua view wrapper
-│   └── php/          # compatibility entry points + PHPMailer
-├── admin/            # giao diện Admin hiện tại và static AdminLTE
-└── index.php          # front controller rất mỏng
+│   │   ├── features/
+│   │   └── admin/
+│   └── admin/          # static AdminLTE assets
+├── admin/
+│   └── index.php       # public entry point cho /admin/
+├── config/
+│   ├── database.php
+│   └── smtp.example.php
+├── database/
+│   └── handbook.sql
+└── index.php
 ```
 
-## Chức năng nằm ở đâu?
+## Phân chia trách nhiệm
 
-| Muốn sửa | Thư mục |
+### `backend/`
+
+Chỉ chứa PHP xử lý ứng dụng: database, session/auth, validation, nghiệp vụ và request handlers. Không chứa giao diện HTML của user/admin.
+
+| Chức năng | Vị trí |
 |---|---|
-| Đăng ký, đăng nhập, OTP, quên mật khẩu | `app/Auth/` |
-| Hồ sơ người dùng | `app/Users/` |
-| Bài đăng | `app/Posts/` |
-| Like | `app/Interactions/Likes/` |
-| Bình luận | `app/Interactions/Comments/` |
-| Follow | `app/Interactions/Follow/` |
-| Block | `app/Interactions/Block/` |
-| Nhắn tin | `app/Messages/` |
-| Thông báo | `app/Notifications/` |
-| Tìm kiếm | `app/Search/` |
-| Quản trị | `app/Admin/` |
-| Routing trang | `routes/web.php` |
-| Form actions User | `routes/user-actions.php` |
-| AJAX User | `routes/api.php` |
-| Actions Admin | `routes/admin-actions.php` |
-| AJAX Admin | `routes/admin-api.php` |
-| Database config | `config/database.php` + `app/Core/database.php` |
-| Database schema | `database/handbook.sql` |
-| JavaScript theo chức năng | `assets/js/features/` |
+| Đăng ký/đăng nhập/OTP/quên mật khẩu | `backend/auth/` |
+| Hồ sơ người dùng | `backend/users/` |
+| Bài đăng | `backend/posts/` |
+| Like/bình luận/follow/block | `backend/interactions/` |
+| Tin nhắn | `backend/messages/` |
+| Thông báo | `backend/notifications/` |
+| Tìm kiếm | `backend/search/` |
+| Nghiệp vụ admin | `backend/admin/` |
+| Form/API entry handlers | `backend/http/` |
+
+`backend/bootstrap.php` khởi tạo session, database và load các feature dùng chung.
+
+### `frontend/`
+
+Chỉ chứa phần hiển thị. User UI nằm trong `frontend/user/`, admin UI nằm trong `frontend/admin/`, layout dùng chung nằm trong `frontend/layouts/`.
+
+Template có thể render dữ liệu và điều kiện hiển thị nhưng nghiệp vụ/database mới không được đặt tại đây.
+
+### `public/`
+
+Chứa tài nguyên được trình duyệt truy cập trực tiếp: CSS, JS, hình ảnh, ảnh upload và static AdminLTE. Không chứa business logic PHP.
+
+### `admin/index.php`
+
+Thư mục `admin/` được giữ lại duy nhất để URL `/admin/` tiếp tục hoạt động. File này chỉ bootstrap, dispatch action/API và chọn frontend admin; toàn bộ nghiệp vụ nằm trong `backend/`, toàn bộ UI nằm trong `frontend/admin/`.
 
 ## Luồng request
 
-### Trang web
+### User page
 
 ```text
 index.php
-  -> app/bootstrap.php
-  -> routes/web.php
-  -> feature functions
-  -> feature view
+  -> backend/bootstrap.php
+  -> frontend/router.php
+  -> frontend/layouts + frontend/user/*
 ```
 
-### Form User
-
-Các form cũ vẫn gửi đến `assets/php/actions.php` để không phá giao diện hiện tại. File này bây giờ chỉ là compatibility wrapper:
+### User form action
 
 ```text
-assets/php/actions.php
-  -> routes/user-actions.php
-  -> app/<Feature>/functions.php
-  -> database
+index.php?action=...
+  -> backend/bootstrap.php
+  -> backend/http/user-actions.php
+  -> backend/<feature>/functions.php
+  -> redirect/response
 ```
 
-### AJAX User
+### User AJAX
 
 ```text
-assets/php/ajax.php
-  -> routes/api.php
-  -> app/<Feature>/functions.php
-  -> database
+index.php?api=...
+  -> backend/bootstrap.php
+  -> backend/http/api.php
+  -> backend/<feature>/functions.php
+  -> JSON
 ```
 
-Admin hoạt động tương tự với `admin/php/*` và `routes/admin-*`.
-
-## Vì sao vẫn còn `assets/php/functions.php`?
-
-Các template giao diện cũ đang gọi trực tiếp các hàm như `getUser()`, `getLikes()`, `getComments()`... Vì vậy file `assets/php/functions.php` được giữ lại như một **wrapper tương thích**, nhưng không còn chứa nghiệp vụ. Nó chỉ load `app/bootstrap.php`.
-
-Tương tự, `assets/php/actions.php`, `assets/php/ajax.php` và các file `admin/php/*` cũ chỉ còn nhiệm vụ chuyển request sang `routes/`.
-
-Điều này cho phép refactor kiến trúc mà không phá giao diện cũ. Khi giao diện mới được viết lại, các template trong `assets/pages/` có thể được xóa hoàn toàn.
-
-## Frontend JavaScript
-
-File `assets/js/custom.js` cũ đã được bỏ. Logic JavaScript được chia theo feature:
+### Admin
 
 ```text
-posts.js          -> preview ảnh bài đăng
-follow.js         -> follow / unfollow / unblock
-likes.js          -> like / unlike
-comments.js       -> thêm bình luận
-search.js         -> tìm kiếm người dùng
-notifications.js  -> trạng thái thông báo
-messages.js       -> chat và polling tin nhắn
-app.js            -> bootstrap dùng chung, timeago
+admin/index.php
+  -> backend/bootstrap.php
+  -> frontend/admin/*
 ```
 
-## Nguyên tắc phát triển từ bây giờ
+Admin action/API được dispatch tương tự qua `backend/http/admin-actions.php` và `backend/http/admin-api.php`.
 
-1. Không thêm nghiệp vụ mới vào `assets/php/functions.php`.
-2. Không thêm logic mới vào `assets/php/actions.php` hoặc `assets/php/ajax.php`.
-3. Mọi nghiệp vụ mới phải nằm trong thư mục feature tương ứng.
-4. Route chỉ nhận request, kiểm tra quyền, gọi feature và trả response/redirect.
-5. SQL chỉ nằm trong feature/core, không viết SQL trực tiếp trong template mới.
-6. UI mới đặt trong `app/<Feature>/views/` hoặc `app/Shared/views/`.
-7. JavaScript mới phải đặt đúng feature trong `assets/js/features/` nếu không phải code dùng chung.
-8. Static image/CSS vẫn nằm trong `assets/`.
-9. Không đưa credential SMTP hoặc mật khẩu database thật lên GitHub.
+## Authentication và session
 
-## Giai đoạn tiếp theo
+Session được khởi tạo một lần trong `backend/bootstrap.php`. User sử dụng `$_SESSION['Auth']` và `$_SESSION['userdata']`; admin sử dụng `$_SESSION['admin_auth']`. Các handler bắt buộc đăng nhập gọi `requireUserAuth()` hoặc `requireAdminAuth()`.
 
-Các file trong `assets/pages/` hiện là UI cũ và các view mới trong `app/*/views/` đang đóng vai trò adapter. Đây là chủ ý: backend và JavaScript đã được chia theo feature trước, sau đó có thể thay toàn bộ UI từng feature mà không phải sửa lại nghiệp vụ hoặc database.
+Mật khẩu mới được hash bằng `password_hash()`. Code cũ vẫn hỗ trợ nâng cấp hash khi đăng nhập để giữ tương thích dữ liệu hiện có.
+
+## Upload
+
+Ảnh bài đăng nằm trong `public/images/posts/`; ảnh hồ sơ nằm trong `public/images/profile/`. Backend kiểm tra kích thước và MIME (`image/jpeg`, `image/png`) trước khi lưu, sau đó sinh tên file ngẫu nhiên.
+
+## Thêm feature mới
+
+Ví dụ thêm chức năng bookmark:
+
+1. Tạo `backend/bookmarks/functions.php` cho nghiệp vụ/SQL.
+2. Load file đó từ `backend/bootstrap.php`.
+3. Thêm action/API cần thiết trong `backend/http/`.
+4. Tạo UI trong `frontend/user/bookmarks/`.
+5. Tạo JS trong `public/js/features/bookmarks.js` nếu cần.
+
+Không tạo `Controllers/Models/Views/Services/Repositories` chỉ để bọc một feature đơn giản.
+
+## Migration từ kiến trúc cũ
+
+Kiến trúc trước sử dụng `app/`, `routes/`, `assets/pages/`, `assets/php/` và `admin/php/` compatibility wrappers. Sau migration:
+
+- `app/` không còn là implementation root.
+- `routes/` đã được thay bằng `backend/http/`.
+- `assets/pages/` được thay bằng `frontend/`.
+- `assets/css`, `assets/js`, `assets/images` được chuyển sang `public/`.
+- `assets/php/` và `admin/php/` wrappers bị loại bỏ.
+- AdminLTE được chuyển thành static asset trong `public/admin/`.
+
+Do đó cây thư mục hiện tại chính là implementation thực tế, không phải một lớp wrapper đặt phía trên code cũ.
