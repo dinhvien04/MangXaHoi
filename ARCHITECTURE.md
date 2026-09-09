@@ -44,6 +44,9 @@ MangXaHoi/
 │   │   ├── profile/
 │   │   └── posts/
 │   └── admin/
+│       ├── router.php
+│       ├── login.php
+│       └── dashboard.php
 ├── public/
 │   ├── css/
 │   ├── images/
@@ -51,14 +54,13 @@ MangXaHoi/
 │   │   ├── features/
 │   │   └── admin/
 │   └── admin/          # static AdminLTE assets
-├── admin/
-│   └── index.php       # public entry point cho /admin/
 ├── config/
 │   ├── database.php
 │   └── smtp.example.php
 ├── database/
 │   └── handbook.sql
-└── index.php
+├── .htaccess
+└── index.php           # front controller chung cho user + admin
 ```
 
 ## Phân chia trách nhiệm
@@ -83,7 +85,7 @@ Chỉ chứa PHP xử lý ứng dụng: database, session/auth, validation, nghi
 
 ### `frontend/`
 
-Chỉ chứa phần hiển thị. User UI nằm trong `frontend/user/`, admin UI nằm trong `frontend/admin/`, layout dùng chung nằm trong `frontend/layouts/`.
+Chỉ chứa phần hiển thị. User UI nằm trong `frontend/user/`, admin UI và router admin nằm trong `frontend/admin/`, layout dùng chung nằm trong `frontend/layouts/`.
 
 Template có thể render dữ liệu và điều kiện hiển thị nhưng nghiệp vụ/database mới không được đặt tại đây.
 
@@ -91,9 +93,11 @@ Template có thể render dữ liệu và điều kiện hiển thị nhưng ngh
 
 Chứa tài nguyên được trình duyệt truy cập trực tiếp: CSS, JS, hình ảnh, ảnh upload và static AdminLTE. Không chứa business logic PHP.
 
-### `admin/index.php`
+### Front controller chung
 
-Thư mục `admin/` được giữ lại duy nhất để URL `/admin/` tiếp tục hoạt động. File này chỉ bootstrap, dispatch action/API và chọn frontend admin; toàn bộ nghiệp vụ nằm trong `backend/`, toàn bộ UI nằm trong `frontend/admin/`.
+Repository không còn thư mục `admin/` ở root. `index.php` là front controller duy nhất cho cả user và admin.
+
+Với Apache/XAMPP, `.htaccess` giữ URL `/admin/` bằng cách rewrite nội bộ sang `index.php?admin=1`. Admin router thực tế nằm tại `frontend/admin/router.php`.
 
 ## Luồng request
 
@@ -126,15 +130,30 @@ index.php?api=...
   -> JSON
 ```
 
-### Admin
+### Admin page
 
 ```text
-admin/index.php
+/admin/
+  -> .htaccess
+  -> index.php?admin=1
   -> backend/bootstrap.php
-  -> frontend/admin/*
+  -> frontend/admin/router.php
+  -> frontend/admin/login.php hoặc dashboard.php
 ```
 
-Admin action/API được dispatch tương tự qua `backend/http/admin-actions.php` và `backend/http/admin-api.php`.
+### Admin action/API
+
+```text
+/admin/?action=...
+  -> .htaccess
+  -> index.php?admin=1&action=...
+  -> backend/http/admin-actions.php
+
+/admin/?api=...
+  -> .htaccess
+  -> index.php?admin=1&api=...
+  -> backend/http/admin-api.php
+```
 
 ## Authentication và session
 
@@ -160,7 +179,7 @@ Không tạo `Controllers/Models/Views/Services/Repositories` chỉ để bọc 
 
 ## Migration từ kiến trúc cũ
 
-Kiến trúc trước sử dụng `app/`, `routes/`, `assets/pages/`, `assets/php/` và `admin/php/` compatibility wrappers. Sau migration:
+Kiến trúc trước sử dụng `app/`, `routes/`, `assets/pages/`, `assets/php/`, `admin/php/` và một thư mục `admin/` ở root làm entry point. Sau migration:
 
 - `app/` không còn là implementation root.
 - `routes/` đã được thay bằng `backend/http/`.
@@ -168,5 +187,6 @@ Kiến trúc trước sử dụng `app/`, `routes/`, `assets/pages/`, `assets/ph
 - `assets/css`, `assets/js`, `assets/images` được chuyển sang `public/`.
 - `assets/php/` và `admin/php/` wrappers bị loại bỏ.
 - AdminLTE được chuyển thành static asset trong `public/admin/`.
+- Entry point `admin/index.php` bị loại bỏ; admin dùng front controller chung `index.php` và `frontend/admin/router.php`.
 
 Do đó cây thư mục hiện tại chính là implementation thực tế, không phải một lớp wrapper đặt phía trên code cũ.
