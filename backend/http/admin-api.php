@@ -1,17 +1,24 @@
 <?php
 
+requirePostRequest();
+requireCsrf();
 requireAdminAuth();
 $api = (string) ($_GET['api'] ?? '');
 
 if ($api === 'verify_user') {
     $user = getUser($_POST['user_id'] ?? 0);
-    jsonResponse(['status' => $user ? verifyEmail($user['email']) : false]);
+    $status = $user && (string) $user['role'] === 'User' && (int) $user['ac_status'] === 0
+        ? verifyEmail($user['email'])
+        : false;
+    jsonResponse(['status' => $status], $status ? 200 : 400);
 }
 if ($api === 'block_user') {
-    jsonResponse(['status' => blockUserByAdmin($_POST['user_id'] ?? 0)]);
+    $status = blockUserByAdmin($_POST['user_id'] ?? 0);
+    jsonResponse(['status' => $status], $status ? 200 : 400);
 }
 if ($api === 'unblock_user') {
-    jsonResponse(['status' => unblockUserByAdmin($_POST['user_id'] ?? 0)]);
+    $status = unblockUserByAdmin($_POST['user_id'] ?? 0);
+    jsonResponse(['status' => $status], $status ? 200 : 400);
 }
 
 jsonResponse(['status' => false, 'message' => 'Invalid action'], 400);

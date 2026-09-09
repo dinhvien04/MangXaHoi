@@ -5,7 +5,10 @@ function checkBlockStatus($currentUser, $userId)
     global $db;
     $currentUser = (int) $currentUser;
     $userId = (int) $userId;
-    $stmt = $db->prepare("SELECT COUNT(*) AS row FROM block_list WHERE user_id = ? AND blocked_user_id = ?");
+    if ($currentUser <= 0 || $userId <= 0) {
+        return 0;
+    }
+    $stmt = $db->prepare('SELECT COUNT(*) AS row FROM block_list WHERE user_id = ? AND blocked_user_id = ?');
     $stmt->bind_param('ii', $currentUser, $userId);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
@@ -16,9 +19,12 @@ function checkBlockStatus($currentUser, $userId)
 function checkBS($userId)
 {
     global $db;
-    $currentUserId = (int) $_SESSION['userdata']['id'];
+    $currentUserId = (int) ($_SESSION['userdata']['id'] ?? 0);
     $userId = (int) $userId;
-    $stmt = $db->prepare("SELECT COUNT(*) AS row FROM block_list WHERE (user_id = ? AND blocked_user_id = ?) OR (user_id = ? AND blocked_user_id = ?)");
+    if ($currentUserId <= 0 || $userId <= 0) {
+        return 0;
+    }
+    $stmt = $db->prepare('SELECT COUNT(*) AS row FROM block_list WHERE (user_id = ? AND blocked_user_id = ?) OR (user_id = ? AND blocked_user_id = ?)');
     $stmt->bind_param('iiii', $currentUserId, $userId, $userId, $currentUserId);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
@@ -29,25 +35,24 @@ function checkBS($userId)
 function blockUser($blockedUserId)
 {
     global $db;
-    $currentUserId = (int) $_SESSION['userdata']['id'];
+    $currentUserId = (int) ($_SESSION['userdata']['id'] ?? 0);
     $blockedUserId = (int) $blockedUserId;
-    if ($blockedUserId <= 0 || $blockedUserId === $currentUserId || checkBlockStatus($currentUserId, $blockedUserId)) {
+    if ($blockedUserId <= 0 || $blockedUserId === $currentUserId || !getActiveUser($blockedUserId) || checkBlockStatus($currentUserId, $blockedUserId)) {
         return false;
     }
 
     $db->begin_transaction();
     try {
-        $stmt = $db->prepare("INSERT INTO block_list (user_id, blocked_user_id) VALUES (?, ?)");
+        $stmt = $db->prepare('INSERT INTO block_list (user_id, blocked_user_id) VALUES (?, ?)');
         $stmt->bind_param('ii', $currentUserId, $blockedUserId);
         $stmt->execute();
         $stmt->close();
 
-        $stmt = $db->prepare("DELETE FROM follow_list WHERE (follower_id = ? AND user_id = ?) OR (follower_id = ? AND user_id = ?)");
+        $stmt = $db->prepare('DELETE FROM follow_list WHERE (follower_id = ? AND user_id = ?) OR (follower_id = ? AND user_id = ?)');
         $stmt->bind_param('iiii', $currentUserId, $blockedUserId, $blockedUserId, $currentUserId);
         $stmt->execute();
         $stmt->close();
 
-        createNotification($currentUserId, $blockedUserId, 'đã chặn bạn');
         $db->commit();
         return true;
     } catch (Throwable $e) {
@@ -59,14 +64,15 @@ function blockUser($blockedUserId)
 function unblockUser($userId)
 {
     global $db;
-    $currentUserId = (int) $_SESSION['userdata']['id'];
+    $currentUserId = (int) ($_SESSION['userdata']['id'] ?? 0);
     $userId = (int) $userId;
-    $stmt = $db->prepare("DELETE FROM block_list WHERE user_id = ? AND blocked_user_id = ?");
-    $stmt->bind_param('ii', $currentUserId, $userId);
-    $ok = $stmt->execute();
-    $stmt->close();
-    if ($ok) {
-        createNotification($currentUserId, $userId, 'đã bỏ chặn bạn!');
+    if ($currentUserId <= 0 || $userId <= 0) {
+        return false;
     }
-    return $ok;
+    $stmt = $db->prepare('DELETE FROM block_list WHERE user_id = ? AND blocked_user_id = ?');
+    $stmt->bind_param('ii', $currentUserId, $userId);
+    $stmt->execute();
+    $affected = $stmt->affected_rows;
+    $stmt->close();
+    return $affected > 0;
 }

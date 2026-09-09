@@ -3,9 +3,12 @@
 function checkFollowStatus($userId)
 {
     global $db;
-    $currentUserId = (int) $_SESSION['userdata']['id'];
+    $currentUserId = (int) ($_SESSION['userdata']['id'] ?? 0);
     $userId = (int) $userId;
-    $stmt = $db->prepare("SELECT COUNT(*) AS row FROM follow_list WHERE follower_id = ? AND user_id = ?");
+    if ($currentUserId <= 0 || $userId <= 0) {
+        return 0;
+    }
+    $stmt = $db->prepare('SELECT COUNT(*) AS row FROM follow_list WHERE follower_id = ? AND user_id = ?');
     $stmt->bind_param('ii', $currentUserId, $userId);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
@@ -13,12 +16,17 @@ function checkFollowStatus($userId)
     return (int) ($row['row'] ?? 0);
 }
 
-function getFollowSuggestions()
+function getFollowSuggestions($limit = 20)
 {
     global $db;
-    $currentUserId = (int) $_SESSION['userdata']['id'];
-    $stmt = $db->prepare("SELECT * FROM users WHERE id != ? AND role = 'User'");
-    $stmt->bind_param('i', $currentUserId);
+    $currentUserId = (int) ($_SESSION['userdata']['id'] ?? 0);
+    $limit = max(1, min(50, (int) $limit));
+    $stmt = $db->prepare("SELECT u.* FROM users u
+        WHERE u.id != ? AND u.role = 'User' AND u.ac_status = 1
+          AND NOT EXISTS (SELECT 1 FROM follow_list f WHERE f.follower_id = ? AND f.user_id = u.id)
+          AND NOT EXISTS (SELECT 1 FROM block_list b WHERE (b.user_id = ? AND b.blocked_user_id = u.id) OR (b.user_id = u.id AND b.blocked_user_id = ?))
+        ORDER BY u.id DESC LIMIT ?");
+    $stmt->bind_param('iiiii', $currentUserId, $currentUserId, $currentUserId, $currentUserId, $limit);
     $stmt->execute();
     $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
@@ -27,33 +35,29 @@ function getFollowSuggestions()
 
 function filterFollowSuggestion()
 {
-    $filter = [];
-    foreach (getFollowSuggestions() as $user) {
-        if (!checkFollowStatus($user['id']) && !checkBS($user['id']) && count($filter) < 5) {
-            $filter[] = $user;
-        }
-    }
-    return $filter;
+    return array_slice(getFollowSuggestions(5), 0, 5);
 }
 
-function getFollowers($userId)
+function getFollowers($userId, $limit = 100)
 {
     global $db;
     $userId = (int) $userId;
-    $stmt = $db->prepare("SELECT * FROM follow_list WHERE user_id = ?");
-    $stmt->bind_param('i', $userId);
+    $limit = max(1, min(200, (int) $limit));
+    $stmt = $db->prepare('SELECT * FROM follow_list WHERE user_id = ? ORDER BY id DESC LIMIT ?');
+    $stmt->bind_param('ii', $userId, $limit);
     $stmt->execute();
     $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
     return $rows;
 }
 
-function getFollowing($userId)
+function getFollowing($userId, $limit = 100)
 {
     global $db;
     $userId = (int) $userId;
-    $stmt = $db->prepare("SELECT * FROM follow_list WHERE follower_id = ?");
-    $stmt->bind_param('i', $userId);
+    $limit = max(1, min(200, (int) $limit));
+    $stmt = $db->prepare('SELECT * FROM follow_list WHERE follower_id = ? ORDER BY id DESC LIMIT ?');
+    $stmt->bind_param('ii', $userId, $limit);
     $stmt->execute();
     $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
@@ -63,16 +67,21 @@ function getFollowing($userId)
 function followUser($userId)
 {
     global $db;
-    $currentUserId = (int) $_SESSION['userdata']['id'];
+    $currentUserId = (int) ($_SESSION['userdata']['id'] ?? 0);
     $userId = (int) $userId;
-    if ($userId <= 0 || $userId === $currentUserId || checkBS($userId) || checkFollowStatus($userId)) {
+    if ($userId <= 0 || $userId === $currentUserId || !getActiveUser($userId) || checkBS($userId) || checkFollowStatus($userId)) {
         return false;
     }
 
-    $stmt = $db->prepare("INSERT INTO follow_list (follower_id, user_id) VALUES (?, ?)");
-    $stmt->bind_param('ii', $currentUserId, $userId);
-    $ok = $stmt->execute();
-    $stmt->close();
+    try {
+        $stmt = $db->prepare('INSERT INTO follow_list (follower_id, user_id) VALUES (?, ?)');
+        $stmt->bind_param('ii', $currentUserId, $userId);
+        $ok = $stmt->execute();
+        $stmt->close();
+    } catch (Throwable $e) {
+        return false;
+    }
+
     if ($ok) {
         createNotification($currentUserId, $userId, 'đã bắt đầu theo dõi bạn!');
     }
@@ -82,14 +91,15 @@ function followUser($userId)
 function unfollowUser($userId)
 {
     global $db;
-    $currentUserId = (int) $_SESSION['userdata']['id'];
+    $currentUserId = (int) ($_SESSION['userdata']['id'] ?? 0);
     $userId = (int) $userId;
-    $stmt = $db->prepare("DELETE FROM follow_list WHERE follower_id = ? AND user_id = ?");
-    $stmt->bind_param('ii', $currentUserId, $userId);
-    $ok = $stmt->execute();
-    $stmt->close();
-    if ($ok) {
-        createNotification($currentUserId, $userId, 'đã bỏ theo dõi bạn!');
+    if ($currentUserId <= 0 || $userId <= 0) {
+        return false;
     }
-    return $ok;
+    $stmt = $db->prepare('DELETE FROM follow_list WHERE follower_id = ? AND user_id = ?');
+    $stmt->bind_param('ii', $currentUserId, $userId);
+    $stmt->execute();
+    $affected = $stmt->affected_rows;
+    $stmt->close();
+    return $affected > 0;
 }

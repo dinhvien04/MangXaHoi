@@ -2,9 +2,9 @@
 
 ## Mục tiêu
 
-Repository được tổ chức theo **feature-based architecture** với nguyên tắc quan trọng nhất: **frontend và backend tách riêng**. Dự án không dùng classic MVC nhiều tầng; một chức năng có thể được tìm thấy trực tiếp theo tên thư mục.
+Dự án dùng **feature-based architecture** và tách rõ frontend/backend. Backend là nguồn nghiệp vụ và dữ liệu; frontend có thể được thay hoàn toàn mà không phải nhúng HTML vào API.
 
-## Cây thư mục
+## Cây chính
 
 ```text
 MangXaHoi/
@@ -12,181 +12,110 @@ MangXaHoi/
 │   ├── bootstrap.php
 │   ├── core/
 │   │   ├── database.php
-│   │   ├── forms.php
 │   │   ├── http.php
-│   │   └── password.php
+│   │   ├── security.php
+│   │   ├── password.php
+│   │   └── forms.php
 │   ├── auth/
-│   │   ├── functions.php
-│   │   └── mail/
 │   ├── users/
 │   ├── posts/
-│   ├── interactions/
-│   │   ├── block/
-│   │   ├── comments/
-│   │   ├── follow/
-│   │   └── likes/
+│   ├── interactions/{block,comments,follow,likes}/
 │   ├── messages/
 │   ├── notifications/
 │   ├── search/
 │   ├── admin/
-│   ├── support/
-│   └── http/
-│       ├── user-actions.php
-│       ├── api.php
-│       ├── admin-actions.php
-│       └── admin-api.php
+│   └── http/{user-actions.php,api.php,admin-actions.php,admin-api.php}
 ├── frontend/
-│   ├── render.php
-│   ├── router.php
 │   ├── layouts/
 │   ├── user/
-│   │   ├── auth/
-│   │   ├── profile/
-│   │   └── posts/
 │   └── admin/
-│       ├── router.php
-│       ├── login.php
-│       └── dashboard.php
 ├── public/
-│   ├── css/
-│   ├── images/
-│   ├── js/
-│   │   ├── features/
-│   │   └── admin/
-│   └── admin/          # static AdminLTE assets
 ├── config/
-│   ├── database.php
-│   └── smtp.example.php
 ├── database/
-│   └── handbook.sql
+│   └── migrations/
+├── tests/backend/
 ├── .htaccess
-└── index.php           # front controller chung cho user + admin
+└── index.php
 ```
 
-## Phân chia trách nhiệm
-
-### `backend/`
-
-Chỉ chứa PHP xử lý ứng dụng: database, session/auth, validation, nghiệp vụ và request handlers. Không chứa giao diện HTML của user/admin.
-
-| Chức năng | Vị trí |
-|---|---|
-| Đăng ký/đăng nhập/OTP/quên mật khẩu | `backend/auth/` |
-| Hồ sơ người dùng | `backend/users/` |
-| Bài đăng | `backend/posts/` |
-| Like/bình luận/follow/block | `backend/interactions/` |
-| Tin nhắn | `backend/messages/` |
-| Thông báo | `backend/notifications/` |
-| Tìm kiếm | `backend/search/` |
-| Nghiệp vụ admin | `backend/admin/` |
-| Form/API entry handlers | `backend/http/` |
-
-`backend/bootstrap.php` khởi tạo session, database và load các feature dùng chung.
-
-### `frontend/`
-
-Chỉ chứa phần hiển thị. User UI nằm trong `frontend/user/`, admin UI và router admin nằm trong `frontend/admin/`, layout dùng chung nằm trong `frontend/layouts/`.
-
-Template có thể render dữ liệu và điều kiện hiển thị nhưng nghiệp vụ/database mới không được đặt tại đây.
-
-### `public/`
-
-Chứa tài nguyên được trình duyệt truy cập trực tiếp: CSS, JS, hình ảnh, ảnh upload và static AdminLTE. Không chứa business logic PHP.
-
-### Front controller chung
-
-Repository không còn thư mục `admin/` ở root. `index.php` là front controller duy nhất cho cả user và admin.
-
-Với Apache/XAMPP, `.htaccess` giữ URL `/admin/` bằng cách rewrite nội bộ sang `index.php?admin=1`. Admin router thực tế nằm tại `frontend/admin/router.php`.
-
-## Luồng request
-
-### User page
+## Request flow
 
 ```text
-index.php
-  -> backend/bootstrap.php
-  -> frontend/router.php
-  -> frontend/layouts + frontend/user/*
+User page:       index.php -> backend/bootstrap.php -> frontend/router.php
+User action:     index.php?action=... -> backend/http/user-actions.php
+User JSON API:   index.php?api=... -> backend/http/api.php
+Admin page:      /admin/ -> .htaccess -> index.php?admin=1 -> frontend/admin/router.php
+Admin action:    /admin/?action=... -> backend/http/admin-actions.php
+Admin JSON API:  /admin/?api=... -> backend/http/admin-api.php
 ```
 
-### User form action
+Mọi state-changing action/API dùng `POST` + CSRF. API trả JSON thuần; frontend tự render giao diện.
+
+## Authentication/session
+
+`backend/bootstrap.php` cấu hình cookie session `HttpOnly`, `SameSite=Lax`, secure khi HTTPS, strict mode, idle timeout 30 phút và absolute timeout 12 giờ.
+
+`requireUserAuth()` và `requireAdminAuth()` không chỉ tin session: chúng đọc lại database để kiểm tra account/role/status. Vì vậy block/xóa user hoặc hạ quyền admin có hiệu lực ở request kế tiếp.
+
+User chưa verify chỉ được dùng luồng verify/resend/logout. User bị block không được gọi feature API/action.
+
+## CSRF
+
+`backend/core/security.php` tạo synchronizer token theo session. Form POST gửi `csrf_token`; AJAX gửi `X-CSRF-Token`. `public/js/security.js` tự gắn token cho form/AJAX/fetch.
+
+Không dùng GET cho thao tác xóa, block, logout, approve, role change hoặc impersonation.
+
+## OTP/rate limiting
+
+OTP email và reset password:
+
+- code 6 chữ số sinh bằng `random_int`;
+- chỉ lưu SHA-256 của code trong session;
+- hết hạn sau 5 phút;
+- tối đa 5 lần thử;
+- resend cooldown 60 giây;
+- bảng `rate_limits` giới hạn login, OTP, forgot-password và message spam;
+- reset token/code là single-use.
+
+## Data integrity
+
+Schema/migration thêm FK `ON DELETE CASCADE` cho quan hệ user/post/comment/like/follow/block/message/notification. Database cũng enforce:
 
 ```text
-index.php?action=...
-  -> backend/bootstrap.php
-  -> backend/http/user-actions.php
-  -> backend/<feature>/functions.php
-  -> redirect/response
+UNIQUE users.email
+UNIQUE users.username
+UNIQUE (likes.post_id, likes.user_id)
+UNIQUE (follow_list.follower_id, follow_list.user_id)
+UNIQUE (block_list.user_id, block_list.blocked_user_id)
 ```
 
-### User AJAX
+Backend vẫn kiểm entity tồn tại trước khi follow/block/message/like/comment để trả lỗi đúng thay vì dựa hoàn toàn vào lỗi database.
 
-```text
-index.php?api=...
-  -> backend/bootstrap.php
-  -> backend/http/api.php
-  -> backend/<feature>/functions.php
-  -> JSON
-```
+## Feed/moderation
 
-### Admin page
+Feed chỉ lấy user active và post `is_approved=1`, đồng thời loại quan hệ block ở cả hai chiều. Feed query dùng JOIN/EXISTS thay cho query follow lặp theo từng bài, có limit/offset và kèm like/comment count.
 
-```text
-/admin/
-  -> .htaccess
-  -> index.php?admin=1
-  -> backend/bootstrap.php
-  -> frontend/admin/router.php
-  -> frontend/admin/login.php hoặc dashboard.php
-```
+`is_reported=1` nghĩa là bài bị gắn cờ để admin review; report của một user **không tự cho phép người đó kiểm duyệt/xóa bài của người khác**. Admin có thể approve/clear report hoặc xóa bài.
 
-### Admin action/API
+## Messaging/search/notification
 
-```text
-/admin/?action=...
-  -> .htaccess
-  -> index.php?admin=1&action=...
-  -> backend/http/admin-actions.php
-
-/admin/?api=...
-  -> .htaccess
-  -> index.php?admin=1&api=...
-  -> backend/http/admin-api.php
-```
-
-## Authentication và session
-
-Session được khởi tạo một lần trong `backend/bootstrap.php`. User sử dụng `$_SESSION['Auth']` và `$_SESSION['userdata']`; admin sử dụng `$_SESSION['admin_auth']`. Các handler bắt buộc đăng nhập gọi `requireUserAuth()` hoặc `requireAdminAuth()`.
-
-Mật khẩu mới được hash bằng `password_hash()`. Code cũ vẫn hỗ trợ nâng cấp hash khi đăng nhập để giữ tương thích dữ liệu hiện có.
+- Message target phải tồn tại, active, không phải chính mình và không bị block.
+- Chat list lấy latest-message theo conversation; message history giới hạn theo page thay vì load vô hạn.
+- Search chỉ trả public fields của active users và loại blocked relationship.
+- Notification chỉ tạo cho positive interaction cần thiết; unlike/unfollow/block/unblock không tạo notification gây nhiễu.
 
 ## Upload
 
-Ảnh bài đăng nằm trong `public/images/posts/`; ảnh hồ sơ nằm trong `public/images/profile/`. Backend kiểm tra kích thước và MIME (`image/jpeg`, `image/png`) trước khi lưu, sau đó sinh tên file ngẫu nhiên.
+Ảnh profile/post kiểm upload error, size, MIME `image/jpeg|image/png`, `getimagesize`, tên random bằng `random_bytes`. Khi DB insert/update fail, file mới được dọn; khi xóa post/user hoặc thay avatar, file cũ được dọn nếu phù hợp.
 
-## Thêm feature mới
+## Web-root protection
 
-Ví dụ thêm chức năng bookmark:
+`.htaccess` cấm truy cập trực tiếp `backend/`, `frontend/`, `config/`, `database/`, `tests/`, `vendor/` và tắt directory listing. Chỉ front controller và browser assets trong `public/` cần được truy cập.
 
-1. Tạo `backend/bookmarks/functions.php` cho nghiệp vụ/SQL.
-2. Load file đó từ `backend/bootstrap.php`.
-3. Thêm action/API cần thiết trong `backend/http/`.
-4. Tạo UI trong `frontend/user/bookmarks/`.
-5. Tạo JS trong `public/js/features/bookmarks.js` nếu cần.
+## Dependency
 
-Không tạo `Controllers/Models/Views/Services/Repositories` chỉ để bọc một feature đơn giản.
+Composer là đường nạp PHPMailer ưu tiên và pin `7.1.1`. Repository vẫn giữ bản PHPMailer legacy đã có sẵn làm fallback tương thích cho clone XAMPP cũ; khi `vendor/autoload.php` tồn tại, backend luôn ưu tiên bản Composer. Nên chạy `composer install` khi triển khai.
 
-## Migration từ kiến trúc cũ
+## Test strategy
 
-Kiến trúc trước sử dụng `app/`, `routes/`, `assets/pages/`, `assets/php/`, `admin/php/` và một thư mục `admin/` ở root làm entry point. Sau migration:
-
-- `app/` không còn là implementation root.
-- `routes/` đã được thay bằng `backend/http/`.
-- `assets/pages/` được thay bằng `frontend/`.
-- `assets/css`, `assets/js`, `assets/images` được chuyển sang `public/`.
-- `assets/php/` và `admin/php/` wrappers bị loại bỏ.
-- AdminLTE được chuyển thành static asset trong `public/admin/`.
-- Entry point `admin/index.php` bị loại bỏ; admin dùng front controller chung `index.php` và `frontend/admin/router.php`.
-
-Do đó cây thư mục hiện tại chính là implementation thực tế, không phải một lớp wrapper đặt phía trên code cũ.
+`.github/workflows/backend-tests.yml` tạo MySQL 8 test database, import schema, lint PHP và chạy `tests/backend/integration.php`. Khi thêm backend feature, ưu tiên thêm case vào integration test trước khi thay frontend.

@@ -1,5 +1,12 @@
-Options -MultiViews
+Options -Indexes -MultiViews
 RewriteEngine On
+
+# Application internals must never be served directly by Apache.
+RewriteRule ^(?:backend|config|database|frontend|tests|vendor)(?:/|$) - [F,L,NC]
 
 # Keep /admin/ as the public admin URL without a top-level admin directory.
 RewriteRule ^admin/?$ index.php?admin=1 [QSA,L]
+
+<FilesMatch "^(?:\.env|composer\.(?:json|lock))$">
+    Require all denied
+</FilesMatch>

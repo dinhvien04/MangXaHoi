@@ -4,7 +4,25 @@ function getUser($userId)
 {
     global $db;
     $userId = (int) $userId;
+    if ($userId <= 0) {
+        return null;
+    }
     $stmt = $db->prepare('SELECT * FROM users WHERE id = ? LIMIT 1');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    return $row ?: null;
+}
+
+function getActiveUser($userId)
+{
+    global $db;
+    $userId = (int) $userId;
+    if ($userId <= 0) {
+        return null;
+    }
+    $stmt = $db->prepare("SELECT * FROM users WHERE id = ? AND role = 'User' AND ac_status = 1 LIMIT 1");
     $stmt->bind_param('i', $userId);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
@@ -16,7 +34,10 @@ function getUserByUsername($username)
 {
     global $db;
     $username = trim((string) $username);
-    $stmt = $db->prepare('SELECT * FROM users WHERE username = ? LIMIT 1');
+    if ($username === '') {
+        return null;
+    }
+    $stmt = $db->prepare("SELECT * FROM users WHERE username = ? AND role = 'User' LIMIT 1");
     $stmt->bind_param('s', $username);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
@@ -27,7 +48,7 @@ function getUserByUsername($username)
 function isUsernameRegisteredByOther($username)
 {
     global $db;
-    $userId = (int) $_SESSION['userdata']['id'];
+    $userId = (int) ($_SESSION['userdata']['id'] ?? 0);
     $username = trim((string) $username);
     $stmt = $db->prepare('SELECT COUNT(*) AS row FROM users WHERE username = ? AND id != ?');
     $stmt->bind_param('si', $username, $userId);
@@ -39,32 +60,36 @@ function isUsernameRegisteredByOther($username)
 
 function validateUpdateForm($formData, $imageData)
 {
-    if (empty($formData['first_name'])) {
-        return ['status' => false, 'msg' => 'Vui lòng nhập họ', 'field' => 'first_name'];
+    $firstName = trim((string) ($formData['first_name'] ?? ''));
+    $lastName = trim((string) ($formData['last_name'] ?? ''));
+    $username = trim((string) ($formData['username'] ?? ''));
+
+    if ($firstName === '' || mb_strlen($firstName) > 100) {
+        return ['status' => false, 'msg' => 'Vui lòng nhập họ hợp lệ', 'field' => 'first_name'];
     }
-    if (empty($formData['last_name'])) {
-        return ['status' => false, 'msg' => 'Vui lòng nhập tên', 'field' => 'last_name'];
+    if ($lastName === '' || mb_strlen($lastName) > 100) {
+        return ['status' => false, 'msg' => 'Vui lòng nhập tên hợp lệ', 'field' => 'last_name'];
     }
-    if (empty($formData['username'])) {
-        return ['status' => false, 'msg' => 'Vui lòng nhập username', 'field' => 'username'];
+    if (!preg_match('/^[A-Za-z0-9._]{3,30}$/', $username)) {
+        return ['status' => false, 'msg' => 'Username phải dài 3-30 ký tự và chỉ gồm chữ, số, dấu chấm hoặc gạch dưới', 'field' => 'username'];
     }
-    if (isUsernameRegisteredByOther($formData['username'])) {
-        return ['status' => false, 'msg' => $formData['username'] . ' đã được sử dụng', 'field' => 'username'];
+    if (isUsernameRegisteredByOther($username)) {
+        return ['status' => false, 'msg' => $username . ' đã được sử dụng', 'field' => 'username'];
     }
-    if (!empty($formData['password']) && strlen((string) $formData['password']) < 6) {
-        return ['status' => false, 'msg' => 'Mật khẩu phải có ít nhất 6 ký tự', 'field' => 'password'];
+    if (!empty($formData['password']) && strlen((string) $formData['password']) < 8) {
+        return ['status' => false, 'msg' => 'Mật khẩu phải có ít nhất 8 ký tự', 'field' => 'password'];
     }
 
     if (!empty($imageData['name'])) {
-        if (($imageData['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK || empty($imageData['tmp_name'])) {
+        if (($imageData['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK || empty($imageData['tmp_name']) || !is_file($imageData['tmp_name'])) {
             return ['status' => false, 'msg' => 'Ảnh tải lên không hợp lệ', 'field' => 'profile_pic'];
         }
-        if ((int) ($imageData['size'] ?? 0) > 1000000) {
-            return ['status' => false, 'msg' => 'Tải lên hình ảnh có kích thước nhỏ hơn 1 MB', 'field' => 'profile_pic'];
+        if ((int) ($imageData['size'] ?? 0) <= 0 || (int) ($imageData['size'] ?? 0) > 1000000) {
+            return ['status' => false, 'msg' => 'Ảnh đại diện phải nhỏ hơn 1 MB', 'field' => 'profile_pic'];
         }
         $mime = (new finfo(FILEINFO_MIME_TYPE))->file($imageData['tmp_name']);
-        if (!in_array($mime, ['image/jpeg', 'image/png'], true)) {
-            return ['status' => false, 'msg' => 'Chỉ cho phép hình ảnh jpg, jpeg, png', 'field' => 'profile_pic'];
+        if (!in_array($mime, ['image/jpeg', 'image/png'], true) || @getimagesize($imageData['tmp_name']) === false) {
+            return ['status' => false, 'msg' => 'Chỉ cho phép hình ảnh JPG hoặc PNG hợp lệ', 'field' => 'profile_pic'];
         }
     }
 
@@ -74,42 +99,58 @@ function validateUpdateForm($formData, $imageData)
 function updateProfile($data, $imageData)
 {
     global $db;
-    $userId = (int) $_SESSION['userdata']['id'];
-    $firstName = trim((string) $data['first_name']);
-    $lastName = trim((string) $data['last_name']);
-    $username = trim((string) $data['username']);
-    $password = (string) $_SESSION['userdata']['password'];
+    $userId = (int) ($_SESSION['userdata']['id'] ?? 0);
+    $current = getUser($userId);
+    if (!$current || (int) $current['ac_status'] !== 1 || (string) $current['role'] !== 'User') {
+        return false;
+    }
 
+    $firstName = trim((string) ($data['first_name'] ?? ''));
+    $lastName = trim((string) ($data['last_name'] ?? ''));
+    $username = trim((string) ($data['username'] ?? ''));
+    $password = (string) $current['password'];
     if (!empty($data['password'])) {
         $password = password_hash((string) $data['password'], PASSWORD_DEFAULT);
     }
 
-    $profilePic = null;
+    $newProfilePic = null;
     if (!empty($imageData['name'])) {
         $mime = (new finfo(FILEINFO_MIME_TYPE))->file($imageData['tmp_name']);
         $extension = $mime === 'image/png' ? 'png' : 'jpg';
-        $profilePic = bin2hex(random_bytes(12)) . '.' . $extension;
+        $newProfilePic = bin2hex(random_bytes(16)) . '.' . $extension;
         $imageDir = dirname(__DIR__, 2) . '/public/images/profile';
         if (!is_dir($imageDir) && !mkdir($imageDir, 0775, true) && !is_dir($imageDir)) {
             return false;
         }
-        if (!move_uploaded_file($imageData['tmp_name'], $imageDir . '/' . $profilePic)) {
+        if (!move_uploaded_file($imageData['tmp_name'], $imageDir . '/' . $newProfilePic)) {
             return false;
         }
     }
 
-    if ($profilePic !== null) {
-        $stmt = $db->prepare("UPDATE users SET first_name = ?, last_name = ?, username = ?, password = ?, password_text = '', profile_pic = ? WHERE id = ?");
-        $stmt->bind_param('sssssi', $firstName, $lastName, $username, $password, $profilePic, $userId);
-    } else {
-        $stmt = $db->prepare("UPDATE users SET first_name = ?, last_name = ?, username = ?, password = ?, password_text = '' WHERE id = ?");
-        $stmt->bind_param('ssssi', $firstName, $lastName, $username, $password, $userId);
+    try {
+        if ($newProfilePic !== null) {
+            $stmt = $db->prepare("UPDATE users SET first_name = ?, last_name = ?, username = ?, password = ?, password_text = '', profile_pic = ? WHERE id = ?");
+            $stmt->bind_param('sssssi', $firstName, $lastName, $username, $password, $newProfilePic, $userId);
+        } else {
+            $stmt = $db->prepare("UPDATE users SET first_name = ?, last_name = ?, username = ?, password = ?, password_text = '' WHERE id = ?");
+            $stmt->bind_param('ssssi', $firstName, $lastName, $username, $password, $userId);
+        }
+        $ok = $stmt->execute();
+        $stmt->close();
+    } catch (Throwable $e) {
+        if ($newProfilePic !== null) {
+            @unlink(dirname(__DIR__, 2) . '/public/images/profile/' . $newProfilePic);
+        }
+        return false;
     }
 
-    $ok = $stmt->execute();
-    $stmt->close();
-    if ($ok) {
-        $_SESSION['userdata'] = getUser($userId);
+    if (!$ok) {
+        return false;
     }
-    return $ok;
+
+    if ($newProfilePic !== null && !empty($current['profile_pic']) && $current['profile_pic'] !== 'default_profile.jpg') {
+        @unlink(dirname(__DIR__, 2) . '/public/images/profile/' . basename((string) $current['profile_pic']));
+    }
+    $_SESSION['userdata'] = getUser($userId);
+    return true;
 }

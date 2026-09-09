@@ -1,0 +1,44 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  php-backend:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: handbook_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_NAME: handbook_test
+      DB_USER: root
+      DB_PASS: root
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, fileinfo, mbstring
+          coverage: none
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: PHP syntax check
+        run: find backend frontend tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Import schema
+        run: mysql -h127.0.0.1 -uroot -proot handbook_test < database/handbook.sql
+      - name: Run backend integration tests
+        run: php tests/backend/integration.php

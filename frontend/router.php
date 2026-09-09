@@ -3,7 +3,7 @@
 require_once __DIR__ . '/render.php';
 
 if (isset($_GET['newfp'])) {
-    unset($_SESSION['auth_temp'], $_SESSION['forgot_email'], $_SESSION['forgot_code']);
+    unset($_SESSION['auth_temp'], $_SESSION['forgot_otp']);
 }
 
 $user = null;
@@ -11,10 +11,15 @@ $posts = [];
 $followSuggestions = [];
 if (!empty($_SESSION['Auth']) && !empty($_SESSION['userdata']['id'])) {
     $user = getUser($_SESSION['userdata']['id']);
-    if ($user) {
+    if (!$user || (string) $user['role'] !== 'User') {
+        unset($_SESSION['Auth'], $_SESSION['userdata'], $_SESSION['email_otp']);
+        $user = null;
+    } else {
         $_SESSION['userdata'] = $user;
-        $posts = filterPosts();
-        $followSuggestions = filterFollowSuggestion();
+        if ((int) $user['ac_status'] === 1) {
+            $posts = filterPosts(50, 0);
+            $followSuggestions = filterFollowSuggestion();
+        }
     }
 }
 
@@ -35,10 +40,10 @@ if ($user && (int) $user['ac_status'] === 2) {
     $renderShell('Chỉnh sửa hồ sơ', 'user/profile/edit-profile', ['user' => $user], true);
 } elseif ($user && (int) $user['ac_status'] === 1 && isset($_GET['u'])) {
     $profile = getUserByUsername($_GET['u']);
-    if (!$profile) {
+    if (!$profile || (int) $profile['ac_status'] !== 1) {
         $renderShell('Không tìm thấy người dùng', 'user/profile/user-not-found', [], true);
     } else {
-        $profilePosts = getPostById($profile['id']);
+        $profilePosts = getPostById($profile['id'], 50, 0);
         $profile['followers'] = getFollowers($profile['id']);
         $profile['following'] = getFollowing($profile['id']);
         $renderShell($profile['first_name'] . ' ' . $profile['last_name'], 'user/profile/profile', [

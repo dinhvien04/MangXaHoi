@@ -1,73 +1,90 @@
 # Handbook - Ứng dụng mạng xã hội
 
-Handbook là ứng dụng mạng xã hội viết bằng PHP/MySQL. Hệ thống hỗ trợ đăng ký, đăng nhập, xác minh email bằng OTP, hồ sơ cá nhân, bài đăng, like, bình luận, follow, block, tìm kiếm, thông báo, nhắn tin và trang quản trị.
+Handbook là ứng dụng mạng xã hội PHP/MySQL hỗ trợ đăng ký, đăng nhập, OTP email, hồ sơ, bài đăng, like, bình luận, follow, block, tìm kiếm, thông báo, nhắn tin và quản trị.
 
 ## Kiến trúc
 
-Dự án dùng kiến trúc **feature-based** đơn giản, tách rõ 3 phần:
-
 ```text
 MangXaHoi/
-├── backend/       # PHP nghiệp vụ, database, auth, API/action handlers
-├── frontend/      # Toàn bộ giao diện user/admin và router hiển thị
-├── public/        # CSS, JavaScript, hình ảnh và AdminLTE
-├── config/        # cấu hình database/SMTP
-├── database/      # schema/dữ liệu SQL
-├── .htaccess      # route /admin/ về front controller chung
-└── index.php      # front controller chung cho user + admin
+├── backend/       # business logic, auth, database, JSON API/action handlers
+├── frontend/      # giao diện user/admin
+├── public/        # CSS, JavaScript, hình ảnh, ảnh upload, AdminLTE
+├── config/        # database/SMTP
+├── database/      # schema + migrations
+├── tests/         # backend integration tests
+├── .htaccess      # rewrite /admin + chặn truy cập implementation files
+└── index.php      # front controller chung
 ```
 
-Backend được chia theo chức năng (`auth`, `users`, `posts`, `interactions`, `messages`, `notifications`, `search`, `admin`) thay vì MVC nhiều tầng. Frontend không nằm trong backend. Admin UI và router nằm hoàn toàn trong `frontend/admin/`; repository không còn thư mục `admin/` ở root.
-
-Xem chi tiết tại [ARCHITECTURE.md](ARCHITECTURE.md).
+Backend được chia theo feature (`auth`, `users`, `posts`, `interactions`, `messages`, `notifications`, `search`, `admin`) thay vì classic MVC nhiều tầng. Frontend không nằm trong backend.
 
 ## Yêu cầu
 
-- PHP 7.4+ (khuyến nghị PHP 8.x)
-- MySQL/MariaDB
-- PHP extensions: `mysqli`, `fileinfo`
-- Apache/Nginx hoặc XAMPP/WAMP tương đương
+- PHP 8.1+ (khuyến nghị PHP 8.2+)
+- MySQL 8 / MariaDB tương thích
+- PHP extensions: `mysqli`, `fileinfo`, `mbstring`
+- Apache/XAMPP có `mod_rewrite` và `AllowOverride` cho `.htaccess`
+- Composer (khuyến nghị để dùng PHPMailer 7.1.1; repo vẫn giữ fallback mailer cũ để clone XAMPP hiện tại không bị gãy ngay)
 
-## Cài đặt
+## Cài mới
 
 1. Clone repository vào web root, ví dụ `htdocs/MangXaHoi`.
-2. Tạo database `handbook` và import `database/handbook.sql`.
-3. Database mặc định dùng `localhost`, user `root`, password rỗng. Có thể cấu hình bằng biến môi trường:
-   - `DB_HOST`
-   - `DB_NAME`
-   - `DB_USER`
-   - `DB_PASS`
-4. Để dùng OTP/email, copy `config/smtp.example.php` thành `config/smtp.php` và điền tài khoản SMTP. `config/smtp.php` đã được gitignore và không được commit credential thật.
+2. Khuyến nghị chạy `composer install` để dùng PHPMailer 7.1.1. Nếu chưa có Composer, mailer tương thích cũ vẫn được dùng làm fallback tạm thời.
+3. Tạo database `handbook` và import `database/handbook.sql`.
+4. Copy `config/smtp.example.php` thành `config/smtp.php` và điền SMTP nếu cần email/OTP.
 5. Mở `http://localhost/MangXaHoi/`.
-6. Trang quản trị vẫn dùng URL `http://localhost/MangXaHoi/admin/`. Với Apache/XAMPP, `.htaccess` route URL này về `index.php?admin=1` nên không cần thư mục `admin/` vật lý.
+6. Admin: `http://localhost/MangXaHoi/admin/`.
 
-## Chức năng chính
+Database có thể cấu hình bằng `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`.
 
-### Người dùng
+## Nâng cấp database cũ
 
-- Đăng ký / đăng nhập / đăng xuất.
-- Xác minh email OTP, quên và đổi mật khẩu.
-- Xem/chỉnh sửa hồ sơ và ảnh đại diện.
-- Tạo, chỉnh sửa, xóa, báo cáo bài viết.
-- Like/unlike, bình luận.
-- Follow/unfollow, block/unblock.
-- Tìm kiếm người dùng.
-- Thông báo và nhắn tin.
+**Backup database trước**, sau đó chạy một lần:
 
-### Quản trị viên
+```text
+database/migrations/20260909_backend_hardening.sql
+```
 
-- Đăng nhập admin.
-- Dashboard thống kê.
-- Tìm kiếm, xác minh, block/unblock, xóa người dùng.
-- Thay đổi vai trò User/Admin.
-- Cập nhật hồ sơ admin.
-- Tìm kiếm, duyệt và xóa bài đăng/bình luận.
+Migration thêm foreign key/cascade, unique constraint cho email/username/like/follow/block, index hiệu năng, bảng rate-limit và chuẩn hóa cột moderation/notification. Nếu database cũ đã có email hoặc username trùng nhau, xử lý dữ liệu trùng trước khi chạy migration.
 
-## Phát triển
+## Backend hardening
 
-- Nghiệp vụ PHP mới đặt trong `backend/<feature>/`.
-- UI mới đặt trong `frontend/user/` hoặc `frontend/admin/`.
-- Router admin nằm trong `frontend/admin/router.php`; không tạo lại thư mục `admin/` ở root.
-- CSS/JS/image phía trình duyệt đặt trong `public/`.
-- Không viết SQL trực tiếp trong template mới.
-- Không đưa mật khẩu database/SMTP thật lên GitHub.
+Backend hiện áp dụng:
+
+- session cookie `HttpOnly`, `SameSite=Lax`, strict-mode, idle/absolute timeout;
+- revalidate user/admin từ database ở mỗi action/API nhạy cảm;
+- tài khoản bị block, bị xóa hoặc admin bị hạ quyền không thể tiếp tục dùng session cũ;
+- CSRF synchronizer token cho state-changing request;
+- action/API thay đổi trạng thái chỉ nhận `POST`;
+- prepared statements + database FK/UNIQUE để chống orphan/duplicate data;
+- OTP 5 phút, tối đa 5 lần thử, resend cooldown và rate limiting;
+- upload chỉ nhận ảnh JPEG/PNG hợp lệ, giới hạn kích thước, tên file ngẫu nhiên;
+- API trả JSON dữ liệu, không render HTML trong backend;
+- pagination/limit cho feed, chat, notification, search;
+- moderation và block được enforce ở query backend;
+- xóa user/post dọn dữ liệu liên quan bằng cascade và dọn file upload;
+- `backend/`, `frontend/`, `config/`, `database/`, `tests/`, `vendor/` không được truy cập trực tiếp từ web.
+
+## Test
+
+GitHub Actions workflow `Backend Tests` chạy:
+
+- `php -l` cho PHP backend/frontend/tests;
+- import schema sạch vào MySQL 8;
+- `tests/backend/integration.php` hiện có hơn 60 assertion cho auth/session, CSRF/OTP, duplicate constraints, follow/block, message, search, like/comment/post ownership, moderation, admin privilege revocation và cascade delete.
+
+Chạy local sau khi có database test đã import:
+
+```text
+DB_NAME=handbook_test DB_USER=root DB_PASS=... php tests/backend/integration.php
+```
+
+Trên Windows PowerShell hãy đặt các biến môi trường tương ứng trước khi chạy PHP.
+
+## Quy ước phát triển
+
+- Nghiệp vụ PHP: `backend/<feature>/`.
+- UI: `frontend/user/` hoặc `frontend/admin/`.
+- Browser assets: `public/`.
+- API mới trả JSON thuần; HTML được render ở frontend.
+- Không đưa credential thật hoặc `config/smtp.php` lên GitHub.

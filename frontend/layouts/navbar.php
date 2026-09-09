@@ -29,7 +29,7 @@
                     <li><a class="dropdown-item" href="?u=<?= rawurlencode($user['username']) ?>"><i class="bi bi-person"></i> Hồ sơ của tôi</a></li>
                     <li><a class="dropdown-item" href="?editprofile"><i class="bi bi-pencil-square"></i> Chỉnh sửa hồ sơ</a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="?action=logout"><i class="bi bi-box-arrow-in-left"></i> Đăng xuất</a></li>
+                    <li><form method="post" action="?action=logout" class="m-0"><?= csrfField() ?><button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-in-left"></i> Đăng xuất</button></form></li>
                 </ul>
             </li>
         </ul>
