@@ -1,6 +1,6 @@
 # Kiến trúc dự án MangXaHoi
 
-Dự án được tổ chức theo **feature-based architecture**: code của từng chức năng nằm trong thư mục riêng thay vì dồn toàn bộ nghiệp vụ vào `functions.php`, `actions.php` và `ajax.php`.
+Dự án được tổ chức theo **feature-based architecture**: code của từng chức năng nằm trong thư mục riêng thay vì dồn toàn bộ nghiệp vụ vào `functions.php`, `actions.php`, `ajax.php` và một file JavaScript lớn.
 
 ## Cây thư mục chính
 
@@ -19,6 +19,7 @@ MangXaHoi/
 │   │   └── views/
 │   ├── Users/
 │   │   ├── functions.php
+│   │   ├── presenters.php
 │   │   └── views/
 │   ├── Posts/
 │   │   ├── functions.php
@@ -42,14 +43,24 @@ MangXaHoi/
 │   └── admin-api.php
 ├── config/
 │   └── database.php
+├── database/
+│   └── handbook.sql
 ├── assets/
 │   ├── css/
 │   ├── images/
 │   ├── js/
+│   │   ├── app.js
+│   │   └── features/
+│   │       ├── posts.js
+│   │       ├── follow.js
+│   │       ├── likes.js
+│   │       ├── comments.js
+│   │       ├── search.js
+│   │       ├── notifications.js
+│   │       └── messages.js
 │   ├── pages/        # template cũ, chỉ còn được gọi qua view wrapper
 │   └── php/          # compatibility entry points + PHPMailer
 ├── admin/            # giao diện Admin hiện tại và static AdminLTE
-├── handbook.sql
 └── index.php          # front controller rất mỏng
 ```
 
@@ -73,7 +84,9 @@ MangXaHoi/
 | AJAX User | `routes/api.php` |
 | Actions Admin | `routes/admin-actions.php` |
 | AJAX Admin | `routes/admin-api.php` |
-| Database | `config/database.php` + `app/Core/database.php` |
+| Database config | `config/database.php` + `app/Core/database.php` |
+| Database schema | `database/handbook.sql` |
+| JavaScript theo chức năng | `assets/js/features/` |
 
 ## Luồng request
 
@@ -113,7 +126,24 @@ Admin hoạt động tương tự với `admin/php/*` và `routes/admin-*`.
 
 Các template giao diện cũ đang gọi trực tiếp các hàm như `getUser()`, `getLikes()`, `getComments()`... Vì vậy file `assets/php/functions.php` được giữ lại như một **wrapper tương thích**, nhưng không còn chứa nghiệp vụ. Nó chỉ load `app/bootstrap.php`.
 
+Tương tự, `assets/php/actions.php`, `assets/php/ajax.php` và các file `admin/php/*` cũ chỉ còn nhiệm vụ chuyển request sang `routes/`.
+
 Điều này cho phép refactor kiến trúc mà không phá giao diện cũ. Khi giao diện mới được viết lại, các template trong `assets/pages/` có thể được xóa hoàn toàn.
+
+## Frontend JavaScript
+
+File `assets/js/custom.js` cũ đã được bỏ. Logic JavaScript được chia theo feature:
+
+```text
+posts.js          -> preview ảnh bài đăng
+follow.js         -> follow / unfollow / unblock
+likes.js          -> like / unlike
+comments.js       -> thêm bình luận
+search.js         -> tìm kiếm người dùng
+notifications.js  -> trạng thái thông báo
+messages.js       -> chat và polling tin nhắn
+app.js            -> bootstrap dùng chung, timeago
+```
 
 ## Nguyên tắc phát triển từ bây giờ
 
@@ -123,9 +153,10 @@ Các template giao diện cũ đang gọi trực tiếp các hàm như `getUser(
 4. Route chỉ nhận request, kiểm tra quyền, gọi feature và trả response/redirect.
 5. SQL chỉ nằm trong feature/core, không viết SQL trực tiếp trong template mới.
 6. UI mới đặt trong `app/<Feature>/views/` hoặc `app/Shared/views/`.
-7. Static assets mới vẫn đặt trong `assets/css`, `assets/js`, `assets/images`.
-8. Không đưa credential SMTP hoặc mật khẩu database thật lên GitHub.
+7. JavaScript mới phải đặt đúng feature trong `assets/js/features/` nếu không phải code dùng chung.
+8. Static image/CSS vẫn nằm trong `assets/`.
+9. Không đưa credential SMTP hoặc mật khẩu database thật lên GitHub.
 
 ## Giai đoạn tiếp theo
 
-Các file trong `assets/pages/` hiện là UI cũ và các view mới trong `app/*/views/` đang đóng vai trò adapter. Đây là chủ ý: dự án đã tách được kiến trúc backend trước, sau đó có thể thay toàn bộ UI từng feature mà không phải sửa lại nghiệp vụ hoặc database.
+Các file trong `assets/pages/` hiện là UI cũ và các view mới trong `app/*/views/` đang đóng vai trò adapter. Đây là chủ ý: backend và JavaScript đã được chia theo feature trước, sau đó có thể thay toàn bộ UI từng feature mà không phải sửa lại nghiệp vụ hoặc database.
