@@ -1,0 +1,5 @@
+Options -MultiViews
+RewriteEngine On
+
+# Keep /admin/ as the public admin URL without a top-level admin directory.
+RewriteRule ^admin/?$ index.php?admin=1 [QSA,L]
