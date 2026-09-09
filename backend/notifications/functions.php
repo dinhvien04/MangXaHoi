@@ -48,7 +48,7 @@ function getUnreadNotificationsCount()
 {
     global $db;
     $currentUserId = (int) ($_SESSION['userdata']['id'] ?? 0);
-    $stmt = $db->prepare("SELECT COUNT(*) AS row FROM notifications n JOIN users u ON u.id = n.from_user_id WHERE n.to_user_id = ? AND n.read_status = 0 AND u.ac_status = 1");
+    $stmt = $db->prepare("SELECT COUNT(*) AS `row` FROM notifications n JOIN users u ON u.id = n.from_user_id WHERE n.to_user_id = ? AND n.read_status = 0 AND u.ac_status = 1");
     $stmt->bind_param('i', $currentUserId);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();

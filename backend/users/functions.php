@@ -50,7 +50,7 @@ function isUsernameRegisteredByOther($username)
     global $db;
     $userId = (int) ($_SESSION['userdata']['id'] ?? 0);
     $username = trim((string) $username);
-    $stmt = $db->prepare('SELECT COUNT(*) AS row FROM users WHERE username = ? AND id != ?');
+    $stmt = $db->prepare('SELECT COUNT(*) AS `row` FROM users WHERE username = ? AND id != ?');
     $stmt->bind_param('si', $username, $userId);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();

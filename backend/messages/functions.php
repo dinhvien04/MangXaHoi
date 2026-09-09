@@ -88,7 +88,7 @@ function newMsgCount()
 {
     global $db;
     $currentUserId = (int) ($_SESSION['userdata']['id'] ?? 0);
-    $stmt = $db->prepare("SELECT COUNT(*) AS row FROM messages m JOIN users u ON u.id = m.from_user_id WHERE m.to_user_id = ? AND m.read_status = 0 AND u.ac_status = 1");
+    $stmt = $db->prepare("SELECT COUNT(*) AS `row` FROM messages m JOIN users u ON u.id = m.from_user_id WHERE m.to_user_id = ? AND m.read_status = 0 AND u.ac_status = 1");
     $stmt->bind_param('i', $currentUserId);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();

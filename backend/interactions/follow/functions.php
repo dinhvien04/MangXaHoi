@@ -8,7 +8,7 @@ function checkFollowStatus($userId)
     if ($currentUserId <= 0 || $userId <= 0) {
         return 0;
     }
-    $stmt = $db->prepare('SELECT COUNT(*) AS row FROM follow_list WHERE follower_id = ? AND user_id = ?');
+    $stmt = $db->prepare('SELECT COUNT(*) AS `row` FROM follow_list WHERE follower_id = ? AND user_id = ?');
     $stmt->bind_param('ii', $currentUserId, $userId);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();

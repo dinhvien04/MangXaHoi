@@ -8,7 +8,7 @@ function checkBlockStatus($currentUser, $userId)
     if ($currentUser <= 0 || $userId <= 0) {
         return 0;
     }
-    $stmt = $db->prepare('SELECT COUNT(*) AS row FROM block_list WHERE user_id = ? AND blocked_user_id = ?');
+    $stmt = $db->prepare('SELECT COUNT(*) AS `row` FROM block_list WHERE user_id = ? AND blocked_user_id = ?');
     $stmt->bind_param('ii', $currentUser, $userId);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
@@ -24,7 +24,7 @@ function checkBS($userId)
     if ($currentUserId <= 0 || $userId <= 0) {
         return 0;
     }
-    $stmt = $db->prepare('SELECT COUNT(*) AS row FROM block_list WHERE (user_id = ? AND blocked_user_id = ?) OR (user_id = ? AND blocked_user_id = ?)');
+    $stmt = $db->prepare('SELECT COUNT(*) AS `row` FROM block_list WHERE (user_id = ? AND blocked_user_id = ?) OR (user_id = ? AND blocked_user_id = ?)');
     $stmt->bind_param('iiii', $currentUserId, $userId, $userId, $currentUserId);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();

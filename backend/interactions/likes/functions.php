@@ -8,7 +8,7 @@ function checkLikeStatus($postId)
     if ($currentUserId <= 0 || $postId <= 0) {
         return 0;
     }
-    $stmt = $db->prepare('SELECT COUNT(*) AS row FROM likes WHERE user_id = ? AND post_id = ?');
+    $stmt = $db->prepare('SELECT COUNT(*) AS `row` FROM likes WHERE user_id = ? AND post_id = ?');
     $stmt->bind_param('ii', $currentUserId, $postId);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();

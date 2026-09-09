@@ -9,7 +9,7 @@ function isEmailRegistered($email)
 {
     global $db;
     $email = normalizeEmail($email);
-    $stmt = $db->prepare('SELECT COUNT(*) AS row FROM users WHERE email = ?');
+    $stmt = $db->prepare('SELECT COUNT(*) AS `row` FROM users WHERE email = ?');
     $stmt->bind_param('s', $email);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
@@ -21,7 +21,7 @@ function isUsernameRegistered($username)
 {
     global $db;
     $username = trim((string) $username);
-    $stmt = $db->prepare('SELECT COUNT(*) AS row FROM users WHERE username = ?');
+    $stmt = $db->prepare('SELECT COUNT(*) AS `row` FROM users WHERE username = ?');
     $stmt->bind_param('s', $username);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();

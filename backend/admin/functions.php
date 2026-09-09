@@ -87,28 +87,28 @@ function loginUserByAdmin($userId)
 function totalCommentsCount()
 {
     global $db;
-    $row = $db->query('SELECT COUNT(*) AS row FROM comments')->fetch_assoc();
+    $row = $db->query('SELECT COUNT(*) AS `row` FROM comments')->fetch_assoc();
     return (int) ($row['row'] ?? 0);
 }
 
 function totalPostsCount()
 {
     global $db;
-    $row = $db->query('SELECT COUNT(*) AS row FROM posts')->fetch_assoc();
+    $row = $db->query('SELECT COUNT(*) AS `row` FROM posts')->fetch_assoc();
     return (int) ($row['row'] ?? 0);
 }
 
 function totalUsersCount()
 {
     global $db;
-    $row = $db->query('SELECT COUNT(*) AS row FROM users')->fetch_assoc();
+    $row = $db->query('SELECT COUNT(*) AS `row` FROM users')->fetch_assoc();
     return (int) ($row['row'] ?? 0);
 }
 
 function totalLikesCount()
 {
     global $db;
-    $row = $db->query('SELECT COUNT(*) AS row FROM likes')->fetch_assoc();
+    $row = $db->query('SELECT COUNT(*) AS `row` FROM likes')->fetch_assoc();
     return (int) ($row['row'] ?? 0);
 }
 
@@ -161,7 +161,7 @@ function updateAdmin($data)
         return false;
     }
 
-    $stmt = $db->prepare('SELECT COUNT(*) AS row FROM users WHERE email = ? AND id != ?');
+    $stmt = $db->prepare('SELECT COUNT(*) AS `row` FROM users WHERE email = ? AND id != ?');
     $stmt->bind_param('si', $email, $userId);
     $stmt->execute();
     $duplicate = (int) ($stmt->get_result()->fetch_assoc()['row'] ?? 0) > 0;
