@@ -46,6 +46,20 @@ routes/
 
 config/
 └── database.php
+
+database/
+└── handbook.sql
+
+assets/js/
+├── app.js
+└── features/
+    ├── posts.js
+    ├── follow.js
+    ├── likes.js
+    ├── comments.js
+    ├── search.js
+    ├── notifications.js
+    └── messages.js
 ```
 
 `index.php` chỉ còn là front controller. Các file cũ như `assets/php/functions.php`, `assets/php/actions.php` và `assets/php/ajax.php` được giữ làm compatibility wrapper để giao diện hiện tại chưa bị phá.
@@ -60,7 +74,7 @@ Xem giải thích đầy đủ trong **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 git clone https://github.com/dinhvien04/MangXaHoi.git
 ```
 
-2. Tạo database `handbook` và import `handbook.sql`.
+2. Tạo database `handbook` và import `database/handbook.sql`.
 
 3. Database mặc định:
 
@@ -112,4 +126,5 @@ http://localhost/MangXaHoi/admin
 - Không viết SQL trong template giao diện.
 - Chức năng nào thì code trong `app/<Feature>/` tương ứng.
 - Request/redirect/AJAX xử lý trong `routes/`.
+- JavaScript theo chức năng nằm trong `assets/js/features/`.
 - Thành phần dùng chung nằm trong `app/Core/`, `app/Shared/` hoặc `app/Support/`.
