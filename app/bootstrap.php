@@ -16,6 +16,7 @@ require_once __DIR__ . '/Notifications/functions.php';
 
 // User/account features.
 require_once __DIR__ . '/Users/functions.php';
+require_once __DIR__ . '/Users/presenters.php';
 require_once __DIR__ . '/Auth/functions.php';
 
 // Social interactions.
