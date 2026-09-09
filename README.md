@@ -1,76 +1,130 @@
-# Handbook - Ứng dụng mạng xã hội 📖
+# Handbook - Ứng dụng mạng xã hội
 
-![Handbook Logo](assets/images/handbook.png)
+Handbook là ứng dụng mạng xã hội viết bằng PHP/MySQL, hỗ trợ đăng ký, đăng nhập, xác minh email, bài đăng, like, bình luận, follow, block, tìm kiếm, thông báo, nhắn tin và trang quản trị.
 
-## 📝 Giới thiệu
+## Chức năng
 
-Handbook là một ứng dụng mạng xã hội cho phép người dùng kết nối với nhau, chia sẻ bài viết và tương tác với nội dung. Ứng dụng có giao diện thân thiện với người dùng và bảng quản trị để quản lý ứng dụng.
+- Đăng ký, đăng nhập, đăng xuất.
+- Xác minh email bằng OTP và quên mật khẩu.
+- Xem và chỉnh sửa hồ sơ.
+- Tạo, chỉnh sửa, xóa và báo cáo bài viết.
+- Like / unlike và bình luận.
+- Follow / unfollow, block / unblock.
+- Tìm kiếm người dùng.
+- Thông báo tương tác.
+- Nhắn tin giữa người dùng.
+- Admin quản lý người dùng, bài viết và báo cáo.
 
-## ✨ Tính năng
+## Kiến trúc
 
--   **Xác thực người dùng:** Đăng ký, đăng nhập và đăng xuất.
--   **Quản lý hồ sơ:** Chỉnh sửa hồ sơ của bạn, bao gồm tên, tên người dùng và ảnh đại diện.
--   **Tương tác xã hội:** Theo dõi và bỏ theo dõi người dùng, chặn và bỏ chặn người dùng.
--   **Chia sẻ nội dung:** Tạo bài viết với văn bản và hình ảnh.
--   **Tương tác:** Thích và bỏ thích bài viết, bình luận về bài viết.
--   **Thông báo:** Nhận thông báo về lượt thích, bình luận và lượt theo dõi.
--   **Bảng quản trị:** Quản lý người dùng và bài viết.
+Project đã được refactor sang **feature-based architecture**. Mỗi chức năng có thư mục riêng:
 
-## 🚀 Cài đặt
+```text
+app/
+├── Core/
+├── Auth/
+├── Users/
+├── Posts/
+├── Interactions/
+│   ├── Likes/
+│   ├── Comments/
+│   ├── Follow/
+│   └── Block/
+├── Messages/
+├── Notifications/
+├── Search/
+├── Admin/
+├── Shared/
+└── Support/
 
-1.  **Sao chép kho lưu trữ:**
-    ```bash
-    git clone https://github.com/dinhvien04/MangXaHoi.git
-    ```
-2.  **Nhập cơ sở dữ liệu:**
-    -   Tạo một cơ sở dữ liệu mới có tên `handbook`.
-    -   Nhập tệp `handbook.sql` vào cơ sở dữ liệu `handbook`.
-3.  **Cấu hình kết nối cơ sở dữ liệu:**
-    -   Mở `assets/php/config.php` và cập nhật thông tin đăng nhập cơ sở dữ liệu.
-4.  **Cấu hình thông tin đăng nhập email:**
-    -   Mở `assets/php/smtp_config.php` và cập nhật thông tin đăng nhập email.
-5.  **Chạy ứng dụng:**
-    -   Đặt dự án vào thư mục gốc của máy chủ web của bạn (ví dụ: `htdocs` cho XAMPP).
-    -   Mở trình duyệt web của bạn và điều hướng đến `http://localhost/MangXaHoi`.
+routes/
+├── web.php
+├── user-actions.php
+├── api.php
+├── admin-actions.php
+└── admin-api.php
 
-## 💻 Sử dụng
+config/
+└── database.php
 
--   **Đăng ký:** Tạo một tài khoản mới.
--   **Đăng nhập:** Truy cập tài khoản của bạn.
--   **Tường:** Xem bài viết từ những người dùng bạn theo dõi.
--   **Hồ sơ:** Xem hồ sơ và bài viết của bạn.
--   **Chỉnh sửa hồ sơ:** Cập nhật thông tin hồ sơ của bạn.
+database/
+└── handbook.sql
 
-## 🔒 Bảng quản trị
+assets/js/
+├── app.js
+└── features/
+    ├── posts.js
+    ├── follow.js
+    ├── likes.js
+    ├── comments.js
+    ├── search.js
+    ├── notifications.js
+    └── messages.js
+```
 
--   **Truy cập:** `http://localhost/MangXaHoi/admin`
--   **Đăng nhập:** Sử dụng thông tin đăng nhập quản trị viên của bạn để đăng nhập.
--   **Bảng điều khiển:** Xem thống kê về ứng dụng.
--   **Quản lý người dùng:** Xác minh, chặn và bỏ chặn người dùng.
--   **Quản lý bài viết:** Xóa bài viết.
+`index.php` chỉ còn là front controller. Các file cũ như `assets/php/functions.php`, `assets/php/actions.php` và `assets/php/ajax.php` được giữ làm compatibility wrapper để giao diện hiện tại chưa bị phá.
 
-## 🗃️ Lược đồ cơ sở dữ liệu
+Xem giải thích đầy đủ trong **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
-<details>
-  <summary>Nhấp để xem chi tiết</summary>
+## Cài đặt
 
--   **users:** Lưu trữ thông tin người dùng.
--   **posts:** Lưu trữ thông tin bài viết.
--   **likes:** Lưu trữ thông tin về lượt thích trên bài viết.
--   **comments:** Lưu trữ bình luận về bài viết.
--   **follow_list:** Lưu trữ thông tin về lượt theo dõi của người dùng.
--   **block_list:** Lưu trữ thông tin về người dùng bị chặn.
--   **notifications:** Lưu trữ thông báo của người dùng.
+1. Clone repository:
 
-</details>
+```bash
+git clone https://github.com/dinhvien04/MangXaHoi.git
+```
 
-## 🛠️ Công nghệ sử dụng
+2. Tạo database `handbook` và import `database/handbook.sql`.
 
-![PHP](https://img.shields.io/badge/php-%23777BB4.svg?style=for-the-badge&logo=php&logoColor=white)
-![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white)
-![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
-![jQuery](https://img.shields.io/badge/jquery-%230769AD.svg?style=for-the-badge&logo=jquery&logoColor=white)
-![Bootstrap](https://img.shields.io/badge/bootstrap-%23563D7C.svg?style=for-the-badge&logo=bootstrap&logoColor=white)
-![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
-![PHPMailer](https://img.shields.io/badge/phpmailer-%23AD0769.svg?style=for-the-badge&logo=php&logoColor=white)
+3. Database mặc định:
+
+```text
+host: localhost
+name: handbook
+user: root
+password: (trống)
+```
+
+Có thể thay bằng các biến môi trường `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`.
+
+4. Tạo file `assets/php/smtp_config.php`:
+
+```php
+<?php
+return [
+    'username' => 'your-email@gmail.com',
+    'password' => 'your-app-password',
+];
+```
+
+File này đã được `.gitignore` và không được commit credential thật.
+
+5. Đặt project trong thư mục web server, ví dụ `htdocs/MangXaHoi`, sau đó truy cập:
+
+```text
+http://localhost/MangXaHoi
+```
+
+Trang Admin:
+
+```text
+http://localhost/MangXaHoi/admin
+```
+
+## Công nghệ
+
+- PHP
+- MySQL / MariaDB
+- HTML / CSS / JavaScript
+- jQuery
+- Bootstrap
+- PHPMailer
+
+## Quy tắc code mới
+
+- Không viết nghiệp vụ mới trong `assets/php/functions.php`.
+- Không viết SQL trong template giao diện.
+- Chức năng nào thì code trong `app/<Feature>/` tương ứng.
+- Request/redirect/AJAX xử lý trong `routes/`.
+- JavaScript theo chức năng nằm trong `assets/js/features/`.
+- Thành phần dùng chung nằm trong `app/Core/`, `app/Shared/` hoặc `app/Support/`.
