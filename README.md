@@ -9,15 +9,15 @@ Dự án dùng kiến trúc **feature-based** đơn giản, tách rõ 3 phần:
 ```text
 MangXaHoi/
 ├── backend/       # PHP nghiệp vụ, database, auth, API/action handlers
-├── frontend/      # Toàn bộ giao diện user/admin
+├── frontend/      # Toàn bộ giao diện user/admin và router hiển thị
 ├── public/        # CSS, JavaScript, hình ảnh và AdminLTE
-├── admin/         # entry point /admin, không chứa giao diện/nghiệp vụ
 ├── config/        # cấu hình database/SMTP
 ├── database/      # schema/dữ liệu SQL
-└── index.php      # entry point cho user
+├── .htaccess      # route /admin/ về front controller chung
+└── index.php      # front controller chung cho user + admin
 ```
 
-Backend được chia theo chức năng (`auth`, `users`, `posts`, `interactions`, `messages`, `notifications`, `search`, `admin`) thay vì MVC nhiều tầng. Frontend không nằm trong backend.
+Backend được chia theo chức năng (`auth`, `users`, `posts`, `interactions`, `messages`, `notifications`, `search`, `admin`) thay vì MVC nhiều tầng. Frontend không nằm trong backend. Admin UI và router nằm hoàn toàn trong `frontend/admin/`; repository không còn thư mục `admin/` ở root.
 
 Xem chi tiết tại [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -39,7 +39,7 @@ Xem chi tiết tại [ARCHITECTURE.md](ARCHITECTURE.md).
    - `DB_PASS`
 4. Để dùng OTP/email, copy `config/smtp.example.php` thành `config/smtp.php` và điền tài khoản SMTP. `config/smtp.php` đã được gitignore và không được commit credential thật.
 5. Mở `http://localhost/MangXaHoi/`.
-6. Trang quản trị: `http://localhost/MangXaHoi/admin/`.
+6. Trang quản trị vẫn dùng URL `http://localhost/MangXaHoi/admin/`. Với Apache/XAMPP, `.htaccess` route URL này về `index.php?admin=1` nên không cần thư mục `admin/` vật lý.
 
 ## Chức năng chính
 
@@ -67,6 +67,7 @@ Xem chi tiết tại [ARCHITECTURE.md](ARCHITECTURE.md).
 
 - Nghiệp vụ PHP mới đặt trong `backend/<feature>/`.
 - UI mới đặt trong `frontend/user/` hoặc `frontend/admin/`.
+- Router admin nằm trong `frontend/admin/router.php`; không tạo lại thư mục `admin/` ở root.
 - CSS/JS/image phía trình duyệt đặt trong `public/`.
 - Không viết SQL trực tiếp trong template mới.
 - Không đưa mật khẩu database/SMTP thật lên GitHub.
