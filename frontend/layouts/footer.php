@@ -1,42 +1,76 @@
 <?php if ($user && (int) $user['ac_status'] === 1): ?>
-<div class="modal fade" id="addpost" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
-        <div class="modal-header"><h5 class="modal-title">Thêm bài đăng mới</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body">
-            <img src="" style="display:none" id="post_img" class="w-100 rounded border mb-2" alt="Xem trước bài đăng">
+<div class="modal fade hb-modal hb-create-post-modal" id="addpost" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div><h5 class="modal-title">Tạo bài viết</h5><small>Đăng ảnh và chia sẻ nội dung mới.</small></div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
             <form method="post" action="?action=add_post" enctype="multipart/form-data">
                 <?= csrfField() ?>
-                <input class="form-control mb-3" name="post_img" type="file" id="select_post_img" accept="image/jpeg,image/png" required>
-                <textarea name="post_text" class="form-control mb-3" rows="2" maxlength="10000" placeholder="Nói gì đó đi"></textarea>
-                <button type="submit" class="btn btn-primary">Đăng</button>
+                <div class="modal-body">
+                    <div class="hb-modal-user">
+                        <img class="hb-avatar hb-avatar-lg" src="public/images/profile/<?= e($user['profile_pic']) ?>" alt="">
+                        <span><strong><?= e($user['first_name'] . ' ' . $user['last_name']) ?></strong><small><i class="bi bi-globe2"></i> Công khai</small></span>
+                    </div>
+                    <textarea name="post_text" class="hb-create-post-textarea" rows="4" maxlength="10000" placeholder="Bạn đang nghĩ gì thế?"></textarea>
+                    <label class="hb-upload-zone" for="select_post_img">
+                        <img src="" style="display:none" id="post_img" alt="Xem trước ảnh bài đăng">
+                        <span class="hb-upload-placeholder"><span class="hb-upload-icon"><i class="bi bi-image"></i></span><strong>Thêm ảnh JPG hoặc PNG</strong><small>Tối đa 2 MB</small></span>
+                    </label>
+                    <input class="visually-hidden" name="post_img" type="file" id="select_post_img" accept="image/jpeg,image/png" required>
+                </div>
+                <div class="modal-footer"><button type="button" class="hb-secondary-button" data-bs-dismiss="modal">Hủy</button><button type="submit" class="hb-primary-button hb-grow-button">Đăng bài</button></div>
             </form>
         </div>
-    </div></div>
-</div>
-<div class="offcanvas offcanvas-end" tabindex="-1" id="notification_sidebar">
-    <div class="offcanvas-header"><h5 class="offcanvas-title">Thông báo</h5><button class="btn-close" data-bs-dismiss="offcanvas"></button></div>
-    <div class="offcanvas-body">
-        <?php $notifications = getNotifications(50, 0); foreach ($notifications as $not): ?>
-            <div class="d-flex align-items-center border-bottom p-3">
-                <img src="public/images/profile/<?= e($not['from_profile_pic']) ?>" height="40" width="40" class="rounded-circle border me-2" alt="">
-                <div class="flex-grow-1"><a href="?u=<?= rawurlencode($not['from_username']) ?>" class="text-decoration-none text-dark fw-bold"><?= e($not['from_first_name'] . ' ' . $not['from_last_name']) ?></a><p class="mb-0 small text-muted"><?= e($not['message']) ?></p><time class="small text-muted timeago" datetime="<?= e($not['created_at']) ?>"></time></div>
-                <?php if ((int) $not['read_status'] === 0): ?><span class="badge bg-primary">New</span><?php endif; ?>
-            </div>
-        <?php endforeach; if (empty($notifications)): ?><p class="text-center text-muted">Không có thông báo nào</p><?php endif; ?>
     </div>
 </div>
-<div class="offcanvas offcanvas-end" tabindex="-1" id="message_sidebar">
-    <div class="offcanvas-header"><h5 class="offcanvas-title">Tin nhắn</h5><button class="btn-close" data-bs-dismiss="offcanvas"></button></div>
-    <div class="offcanvas-body" id="chatlist"><p class="text-center text-muted">Đang tải tin nhắn...</p></div>
+
+<div class="offcanvas offcanvas-end hb-side-panel" tabindex="-1" id="notification_sidebar" aria-labelledby="notificationTitle">
+    <div class="offcanvas-header">
+        <div><h5 class="offcanvas-title" id="notificationTitle">Thông báo</h5><small>Những cập nhật mới nhất dành cho bạn.</small></div>
+        <button type="button" class="hb-icon-button" data-bs-dismiss="offcanvas" aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="hb-panel-filter"><button class="is-active" type="button">Tất cả</button><button type="button">Chưa đọc</button></div>
+    <div class="offcanvas-body">
+        <?php $notifications = getNotifications(50, 0); foreach ($notifications as $not): ?>
+            <a class="hb-notification-item <?= (int) $not['read_status'] === 0 ? 'is-unread' : '' ?>" href="?u=<?= rawurlencode($not['from_username']) ?>">
+                <img class="hb-avatar hb-avatar-md" src="public/images/profile/<?= e($not['from_profile_pic']) ?>" alt="">
+                <span class="hb-notification-copy"><strong><?= e($not['from_first_name'] . ' ' . $not['from_last_name']) ?></strong><span><?= e($not['message']) ?></span><time class="timeago" datetime="<?= e($not['created_at']) ?>"></time></span>
+                <?php if ((int) $not['read_status'] === 0): ?><span class="hb-unread-dot" aria-label="Chưa đọc"></span><?php endif; ?>
+            </a>
+        <?php endforeach; if (empty($notifications)): ?>
+            <div class="hb-panel-empty"><i class="bi bi-bell"></i><strong>Chưa có thông báo</strong><span>Các tương tác mới sẽ xuất hiện ở đây.</span></div>
+        <?php endif; ?>
+    </div>
 </div>
-<div class="modal fade" id="chatbox" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
-        <div class="modal-header bg-primary text-white"><a href="#" id="cplink" class="text-decoration-none text-white"><h5 class="modal-title"><img src="public/images/profile/default_profile.jpg" id="chatter_pic" height="40" width="40" class="rounded-circle border me-2" alt=""><span id="chatter_name"></span> (@<span id="chatter_username">Đang tải...</span>)</h5></a></div>
-        <div class="modal-body d-flex flex-column-reverse gap-2" id="user_chat"></div>
-        <div class="modal-footer"><div id="msgsender" class="input-group"><input type="text" maxlength="2000" class="form-control" id="msginput" placeholder="Nói điều gì đó..."><button class="btn btn-primary" id="sendmsg" type="button"><i class="bi bi-send"></i></button></div><div id="blerror" class="text-danger" style="display:none">Không thể nhắn tin do trạng thái chặn.</div></div>
-    </div></div>
+
+<div class="offcanvas offcanvas-end hb-side-panel" tabindex="-1" id="message_sidebar" aria-labelledby="messagesTitle">
+    <div class="offcanvas-header">
+        <div><h5 class="offcanvas-title" id="messagesTitle">Tin nhắn</h5><small>Các cuộc trò chuyện gần đây.</small></div>
+        <button type="button" class="hb-icon-button" data-bs-dismiss="offcanvas" aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="hb-panel-search"><i class="bi bi-search"></i><span>Tìm cuộc trò chuyện</span></div>
+    <div class="offcanvas-body" id="chatlist"><div class="hb-panel-empty"><span class="spinner-border spinner-border-sm" role="status"></span><strong>Đang tải tin nhắn...</strong></div></div>
+</div>
+
+<div class="modal fade hb-chat-modal" id="chatbox" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header hb-chat-header">
+                <a href="#" id="cplink" class="hb-chat-person"><img src="public/images/profile/default_profile.jpg" id="chatter_pic" alt=""><span><strong id="chatter_name">Đang tải...</strong><small>@<span id="chatter_username">...</span></small></span></a>
+                <div class="hb-chat-header-actions"><button type="button" class="hb-icon-button" aria-label="Tìm trong cuộc trò chuyện"><i class="bi bi-search"></i></button><button type="button" class="hb-icon-button" data-bs-dismiss="modal" aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>
+            </div>
+            <div class="modal-body d-flex flex-column-reverse gap-2" id="user_chat"></div>
+            <div class="modal-footer hb-chat-composer-wrap">
+                <div id="msgsender" class="hb-chat-composer"><button type="button" class="hb-chat-plus" aria-label="Thêm"><i class="bi bi-plus-lg"></i></button><input type="text" maxlength="2000" id="msginput" placeholder="Aa" autocomplete="off"><button id="sendmsg" type="button" aria-label="Gửi tin nhắn"><i class="bi bi-send-fill"></i></button></div>
+                <div id="blerror" class="hb-alert hb-alert-danger" style="display:none"><i class="bi bi-slash-circle"></i><span>Không thể nhắn tin do trạng thái chặn.</span></div>
+            </div>
+        </div>
+    </div>
 </div>
 <?php endif; ?>
+
 <?php if ($user): ?><script>window.currentUserId=<?= (int) $user['id'] ?>;</script><?php endif; ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="public/js/jquery-3.6.0.min.js"></script>

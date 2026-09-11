@@ -1,1 +1,10 @@
-<div class="login"><div class="col-md-4 col-sm-12 bg-white border rounded p-4 shadow-sm"><img class="mb-4" src="public/images/handbook.png" alt="Handbook" height="45"><h1 class="h5 mb-3 fw-normal">Hello, <?= e($user['first_name'] . ' ' . $user['last_name']) ?>. Tài khoản của bạn đã bị chặn bởi Admin.</h1><form method="post" action="?action=logout" class="d-inline"><input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>"><button type="submit" class="btn btn-danger">Đăng xuất</button></form></div></div>
+<div class="hb-state-page">
+    <section class="hb-card hb-state-card">
+        <span class="hb-state-icon hb-state-icon-danger"><i class="bi bi-slash-circle"></i></span>
+        <span class="hb-state-eyebrow">HANDBOOK SOCIAL</span>
+        <h1>Tài khoản của bạn đã bị chặn</h1>
+        <p>Xin chào <?= e($user['first_name'] . ' ' . $user['last_name']) ?>. Bạn hiện không thể sử dụng các tính năng của Handbook Social.</p>
+        <div class="hb-state-note"><strong>Trạng thái tài khoản: Đã chặn</strong><span>Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ quản trị viên.</span></div>
+        <form method="post" action="?action=logout"><?= csrfField() ?><button type="submit" class="hb-danger-button"><i class="bi bi-box-arrow-right"></i> Đăng xuất khỏi tài khoản</button></form>
+    </section>
+</div>

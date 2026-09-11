@@ -1,13 +1,21 @@
-<div class="login"><div class="col-lg-4 col-md-8 col-sm-12 bg-white border rounded p-4 shadow-sm">
-<form method="post" action="?action=signup">
-    <?= csrfField() ?>
-    <div class="d-flex justify-content-center"><img class="mb-4" src="public/images/handbook.png" alt="Handbook" height="45"></div>
-    <h1 class="h5 mb-3 fw-normal">Tạo tài khoản mới</h1>
-    <div class="d-flex"><div class="form-floating mt-1 col-6"><input type="text" name="first_name" maxlength="100" value="<?= e(showFormData('first_name')) ?>" class="form-control rounded-0" placeholder="Họ" required><label>Họ</label></div><div class="form-floating mt-1 col-6"><input type="text" name="last_name" maxlength="100" value="<?= e(showFormData('last_name')) ?>" class="form-control rounded-0" placeholder="Tên" required><label>Tên</label></div></div>
-    <?= showError('first_name') ?><?= showError('last_name') ?>
-    <div class="d-flex gap-3 my-3"><label><input type="radio" name="gender" value="1" <?= showFormData('gender') === '2' || showFormData('gender') === '3' ? '' : 'checked' ?>> Nam</label><label><input type="radio" name="gender" value="2" <?= showFormData('gender') === '2' ? 'checked' : '' ?>> Nữ</label><label><input type="radio" name="gender" value="3" <?= showFormData('gender') === '3' ? 'checked' : '' ?>> Khác</label></div>
-    <div class="form-floating mt-1"><input type="email" name="email" maxlength="255" value="<?= e(showFormData('email')) ?>" class="form-control rounded-0" placeholder="Email" autocomplete="email" required><label>Email</label></div><?= showError('email') ?>
-    <div class="form-floating mt-1"><input type="text" name="username" minlength="3" maxlength="30" pattern="[A-Za-z0-9._]+" value="<?= e(showFormData('username')) ?>" class="form-control rounded-0" placeholder="Username" autocomplete="username" required><label>Username</label></div><?= showError('username') ?>
-    <div class="form-floating mt-1"><input type="password" name="password" class="form-control rounded-0" placeholder="Mật khẩu" minlength="8" autocomplete="new-password" required><label>Mật khẩu (ít nhất 8 ký tự)</label></div><?= showError('password') ?>
-    <div class="mt-3 d-flex justify-content-between"><button class="btn btn-primary" type="submit">Đăng ký</button><a href="?login" class="text-decoration-none">Bạn đã có tài khoản?</a></div>
-</form></div></div>
+<div class="hb-auth-page">
+    <section class="hb-auth-brand-panel">
+        <div class="hb-auth-brand"><span class="hb-brand-mark">H</span><strong>Handbook Social</strong></div>
+        <div class="hb-auth-brand-copy"><span class="hb-auth-kicker">JOIN THE COMMUNITY</span><h1>Một tài khoản.<br>Nhiều kết nối.</h1><p>Tạo hồ sơ Handbook để đăng bài, theo dõi bạn bè và bắt đầu những cuộc trò chuyện mới.</p></div>
+        <div class="hb-auth-social-preview"><div class="hb-preview-avatar">H</div><div><strong>Handbook Community</strong><small>Luôn chào đón thành viên mới</small></div><p>Chào mừng bạn 👋</p><span>Hãy tạo tài khoản và bắt đầu chia sẻ.</span></div>
+    </section>
+    <section class="hb-auth-form-panel">
+        <form class="hb-auth-card hb-auth-card-tall" method="post" action="?action=signup">
+            <?= csrfField() ?>
+            <span class="hb-auth-mobile-brand"><span class="hb-brand-mark">H</span> Handbook Social</span>
+            <h2>Tạo tài khoản mới</h2><p class="hb-auth-subtitle">Tham gia cộng đồng Handbook chỉ trong vài bước.</p>
+            <div class="hb-form-grid hb-form-grid-auth"><label class="hb-field"><span>Họ</span><input type="text" name="first_name" maxlength="100" value="<?= e(showFormData('first_name')) ?>" placeholder="Nguyễn" required><?= showError('first_name') ?></label><label class="hb-field"><span>Tên</span><input type="text" name="last_name" maxlength="100" value="<?= e(showFormData('last_name')) ?>" placeholder="Đình Viễn" required><?= showError('last_name') ?></label></div>
+            <fieldset class="hb-gender-field"><legend>Giới tính</legend><div><label><input type="radio" name="gender" value="1" <?= showFormData('gender') === '2' || showFormData('gender') === '3' ? '' : 'checked' ?>><span>Nam</span></label><label><input type="radio" name="gender" value="2" <?= showFormData('gender') === '2' ? 'checked' : '' ?>><span>Nữ</span></label><label><input type="radio" name="gender" value="3" <?= showFormData('gender') === '3' ? 'checked' : '' ?>><span>Khác</span></label></div></fieldset>
+            <label class="hb-field"><span>Email</span><input type="email" name="email" maxlength="255" value="<?= e(showFormData('email')) ?>" placeholder="you@example.com" autocomplete="email" required><?= showError('email') ?></label>
+            <label class="hb-field"><span>Username</span><input type="text" name="username" minlength="3" maxlength="30" pattern="[A-Za-z0-9._]+" value="<?= e(showFormData('username')) ?>" placeholder="dinhvien04" autocomplete="username" required><?= showError('username') ?></label>
+            <label class="hb-field"><span>Mật khẩu</span><input type="password" name="password" minlength="8" placeholder="Ít nhất 8 ký tự" autocomplete="new-password" required><?= showError('password') ?></label>
+            <button class="hb-primary-button hb-auth-submit" type="submit">Đăng ký</button>
+            <div class="hb-auth-switch"><span>Đã có tài khoản?</span><a href="?login">Đăng nhập</a></div>
+        </form>
+    </section>
+</div>

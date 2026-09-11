@@ -1,37 +1,56 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-white border">
-    <div class="container col-lg-9 col-sm-12 col-md-10 d-flex justify-content-between">
-        <div class="d-flex align-items-center gap-3 col-lg-8 col-sm-12">
-            <a class="navbar-brand" href="./"><img src="public/images/handbook.png" alt="Handbook" height="28"></a>
-            <form class="d-flex position-relative flex-grow-1" id="searchform" onsubmit="return false;">
-                <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="left:14px"></i>
-                <input class="form-control ps-5" type="search" id="search" placeholder="Tìm kiếm" autocomplete="off" style="border-radius:50px">
-                <div class="bg-white rounded border shadow py-3 px-3 mt-5" style="display:none;position:absolute;z-index:99;top:10px;left:0;width:100%;max-height:300px;overflow-y:auto" id="search_result">
-                    <button type="button" class="btn-close float-end" id="close_search"></button>
-                    <div id="sra" class="text-start"><p class="text-center text-muted">Nhập tên hoặc tên người dùng</p></div>
+<header class="hb-topbar" role="banner">
+    <div class="hb-topbar-left">
+        <a class="hb-brand" href="./" aria-label="Handbook Social - Trang chủ">
+            <span class="hb-brand-mark">H</span>
+            <span class="hb-brand-name">Handbook</span>
+        </a>
+        <form class="hb-global-search" id="searchform" onsubmit="return false;" role="search">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="search" id="search" placeholder="Tìm kiếm trên Handbook" autocomplete="off" aria-label="Tìm kiếm trên Handbook">
+            <div class="hb-search-results" style="display:none" id="search_result">
+                <div class="hb-panel-title-row">
+                    <strong>Tìm kiếm</strong>
+                    <button type="button" class="hb-icon-button hb-icon-button-sm" id="close_search" aria-label="Đóng tìm kiếm"><i class="bi bi-x-lg"></i></button>
                 </div>
-            </form>
-        </div>
-        <ul class="navbar-nav flex-row justify-content-evenly gap-2">
-            <li class="nav-item"><a class="nav-link text-dark" href="./"><i class="bi bi-house-door-fill"></i></a></li>
-            <li class="nav-item"><a class="nav-link text-dark" data-bs-toggle="modal" data-bs-target="#addpost" href="#"><i class="bi bi-plus-square-fill"></i></a></li>
-            <li class="nav-item">
-                <a class="nav-link text-dark position-relative" id="show_not" data-bs-toggle="offcanvas" href="#notification_sidebar">
-                    <i class="bi bi-bell-fill"></i>
-                    <?php $unread = getUnreadNotificationsCount(); if ($unread > 0): ?>
-                        <span class="un-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"><small><?= (int) $unread ?></small></span>
-                    <?php endif; ?>
-                </a>
-            </li>
-            <li class="nav-item"><a class="nav-link text-dark position-relative" data-bs-toggle="offcanvas" href="#message_sidebar"><i class="bi bi-chat-right-dots-fill"></i><span class="un-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="msgcounter"></span></a></li>
-            <li class="nav-item dropdown">
-                <a class="nav-link" href="#" data-bs-toggle="dropdown"><img src="public/images/profile/<?= e($user['profile_pic']) ?>" alt="" height="30" width="30" class="rounded-circle border"></a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="?u=<?= rawurlencode($user['username']) ?>"><i class="bi bi-person"></i> Hồ sơ của tôi</a></li>
-                    <li><a class="dropdown-item" href="?editprofile"><i class="bi bi-pencil-square"></i> Chỉnh sửa hồ sơ</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><form method="post" action="?action=logout" class="m-0"><?= csrfField() ?><button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-in-left"></i> Đăng xuất</button></form></li>
-                </ul>
-            </li>
-        </ul>
+                <div id="sra"><p class="hb-empty-copy">Nhập tên hoặc tên người dùng</p></div>
+            </div>
+        </form>
     </div>
-</nav>
+
+    <nav class="hb-topbar-nav" aria-label="Điều hướng chính">
+        <a class="hb-topnav-item is-active" href="./" aria-current="page"><i class="bi bi-house-door-fill"></i><span>Trang chủ</span></a>
+        <button class="hb-topnav-item" type="button" data-bs-toggle="modal" data-bs-target="#addpost"><i class="bi bi-plus-square"></i><span>Tạo bài</span></button>
+        <button class="hb-topnav-item" type="button" data-bs-toggle="offcanvas" data-bs-target="#message_sidebar" aria-controls="message_sidebar"><i class="bi bi-chat-dots-fill"></i><span>Tin nhắn</span></button>
+        <button class="hb-topnav-item" type="button" id="show_not" data-bs-toggle="offcanvas" data-bs-target="#notification_sidebar" aria-controls="notification_sidebar">
+            <span class="hb-nav-icon-wrap"><i class="bi bi-bell-fill"></i><?php $unread = getUnreadNotificationsCount(); if ($unread > 0): ?><span class="hb-nav-badge un-count"><?= (int) $unread ?></span><?php endif; ?></span>
+            <span>Thông báo</span>
+        </button>
+    </nav>
+
+    <div class="hb-topbar-actions">
+        <button class="hb-circle-action" type="button" data-bs-toggle="modal" data-bs-target="#addpost" aria-label="Tạo bài viết"><i class="bi bi-plus-lg"></i></button>
+        <button class="hb-circle-action position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#message_sidebar" aria-label="Tin nhắn">
+            <i class="bi bi-chat-dots-fill"></i><span class="hb-nav-badge hb-message-badge" id="msgcounter"></span>
+        </button>
+        <div class="dropdown">
+            <button class="hb-profile-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="public/images/profile/<?= e($user['profile_pic']) ?>" alt="Ảnh đại diện của <?= e($user['first_name']) ?>">
+                <span><?= e($user['first_name'] . ' ' . $user['last_name']) ?></span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end hb-dropdown-menu">
+                <li class="px-2 pt-2 pb-1">
+                    <a class="hb-dropdown-profile" href="?u=<?= rawurlencode($user['username']) ?>">
+                        <img src="public/images/profile/<?= e($user['profile_pic']) ?>" alt="">
+                        <span><strong><?= e($user['first_name'] . ' ' . $user['last_name']) ?></strong><small>@<?= e($user['username']) ?></small></span>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="?u=<?= rawurlencode($user['username']) ?>"><i class="bi bi-person-circle"></i> Hồ sơ của tôi</a></li>
+                <li><a class="dropdown-item" href="?editprofile"><i class="bi bi-pencil-square"></i> Chỉnh sửa hồ sơ</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><form method="post" action="?action=logout" class="m-0"><?= csrfField() ?><button class="dropdown-item text-danger" type="submit"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button></form></li>
+            </ul>
+        </div>
+    </div>
+</header>
