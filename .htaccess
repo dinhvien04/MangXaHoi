@@ -4,8 +4,11 @@ RewriteEngine On
 # Application internals must never be served directly by Apache.
 RewriteRule ^(?:backend|config|database|frontend|tests|vendor)(?:/|$) - [F,L,NC]
 
+# Canonicalize /admin -> /admin/ so relative admin assets resolve inside the app directory.
+RewriteRule ^admin$ admin/ [R=302,L]
+
 # Keep /admin/ as the public admin URL without a top-level admin directory.
-RewriteRule ^admin/?$ index.php?admin=1 [QSA,L]
+RewriteRule ^admin/$ index.php?admin=1 [QSA,L]
 
 <FilesMatch "^(?:\.env|composer\.(?:json|lock))$">
     Require all denied
