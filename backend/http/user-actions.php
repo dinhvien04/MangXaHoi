@@ -37,9 +37,17 @@ if ($action === 'login') {
         session_regenerate_id(true);
         $_SESSION['Auth'] = true;
         $_SESSION['userdata'] = $response['user'];
-        unset($_SESSION['email_otp']);
+        unset($_SESSION['admin_auth'], $_SESSION['email_otp']);
 
-        if ((int) $response['user']['ac_status'] === 0) {
+        $role = (string) ($response['user']['role'] ?? 'User');
+        $status = (int) ($response['user']['ac_status'] ?? 0);
+
+        if ($role === 'Admin' && $status === 1) {
+            header('Location: ./admin/');
+            exit();
+        }
+
+        if ($status === 0) {
             $sent = sendOtpToSession('email_otp', $response['user']['email'], 'verify_email', 'Xác minh email của bạn', false);
             if (!$sent['status']) {
                 $_SESSION['error'] = [
@@ -80,7 +88,6 @@ if ($action === 'forgot_password') {
             exit();
         }
     } else {
-        // Keep the visible flow the same to avoid exposing whether an account exists.
         $_SESSION['forgot_otp'] = buildOtpState($email, random_int(100000, 999999), 'forgot_password');
     }
 
@@ -138,7 +145,14 @@ if ($action === 'change_password') {
 }
 
 if ($action === 'logout') {
-    unset($_SESSION['Auth'], $_SESSION['userdata'], $_SESSION['email_otp'], $_SESSION['forgot_otp'], $_SESSION['auth_temp']);
+    unset(
+        $_SESSION['Auth'],
+        $_SESSION['userdata'],
+        $_SESSION['admin_auth'],
+        $_SESSION['email_otp'],
+        $_SESSION['forgot_otp'],
+        $_SESSION['auth_temp']
+    );
     session_regenerate_id(true);
     header('Location: ./');
     exit();
