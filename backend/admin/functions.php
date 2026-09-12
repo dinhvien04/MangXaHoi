@@ -1,38 +1,5 @@
 <?php
 
-function checkAdminUser($loginData)
-{
-    global $db;
-    $email = normalizeEmail($loginData['email'] ?? '');
-    $plainPassword = (string) ($loginData['password'] ?? '');
-    $data = ['status' => false, 'user' => []];
-
-    if ($email === '' || $plainPassword === '') {
-        return $data;
-    }
-    if (!consumeRateLimit('admin_login', $email . '|' . clientIp(), 20, 900)) {
-        return $data;
-    }
-
-    $stmt = $db->prepare("SELECT * FROM users WHERE email = ? AND role = 'Admin' AND ac_status = 1 LIMIT 1");
-    $stmt->bind_param('s', $email);
-    $stmt->execute();
-    $user = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-
-    if (!$user || !passwordMatches($plainPassword, $user['password'])) {
-        return $data;
-    }
-
-    $user['password'] = upgradePasswordHash((int) $user['id'], $plainPassword, $user['password']);
-    $user['password_text'] = '';
-    $data['status'] = true;
-    $data['user'] = $user;
-    $data['user_id'] = (int) $user['id'];
-    $data['role'] = 'Admin';
-    return $data;
-}
-
 function getAdmin($userId)
 {
     global $db;
@@ -67,21 +34,6 @@ function getUsersList($searchKeyword = '', $limit = 100, $offset = 0)
     $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
     return $rows;
-}
-
-function loginUserByAdmin($userId)
-{
-    global $db;
-    if (!validateAdminSession()['ok']) {
-        return ['status' => false, 'user' => []];
-    }
-    $userId = (int) $userId;
-    $stmt = $db->prepare("SELECT * FROM users WHERE id = ? AND role = 'User' AND ac_status = 1 LIMIT 1");
-    $stmt->bind_param('i', $userId);
-    $stmt->execute();
-    $user = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-    return $user ? ['status' => true, 'user' => $user] : ['status' => false, 'user' => []];
 }
 
 function totalCommentsCount()
@@ -176,10 +128,13 @@ function updateAdmin($data)
     }
 
     try {
-        $stmt = $db->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, password = ?, password_text = '', role = 'Admin' WHERE id = ?");
+        $stmt = $db->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, password = ?, role = 'Admin' WHERE id = ?");
         $stmt->bind_param('ssssi', $firstName, $lastName, $email, $password, $userId);
         $ok = $stmt->execute();
         $stmt->close();
+        if ($ok) {
+            $_SESSION['userdata'] = getUser($userId);
+        }
         return $ok;
     } catch (Throwable $e) {
         return false;
