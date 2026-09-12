@@ -11,7 +11,7 @@ $posts = [];
 $followSuggestions = [];
 if (!empty($_SESSION['Auth']) && !empty($_SESSION['userdata']['id'])) {
     $user = getUser($_SESSION['userdata']['id']);
-    if (!$user || (string) $user['role'] !== 'User') {
+    if (!$user || !in_array((string) $user['role'], ['User', 'Admin'], true)) {
         unset($_SESSION['Auth'], $_SESSION['userdata'], $_SESSION['email_otp']);
         $user = null;
     } else {
