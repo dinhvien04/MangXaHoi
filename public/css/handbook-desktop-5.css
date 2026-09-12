@@ -98,6 +98,10 @@
 .hb-admin-detail-body dt { margin: 0; color: var(--hb-muted); font-weight: 600; }
 .hb-admin-detail-body dd { margin: 0; color: var(--hb-text); font-weight: 600; overflow-wrap: anywhere; }
 
+.hb-admin-top-actions { display: flex; align-items: center; gap: 10px; }
+.hb-admin-top-actions form { margin: 0; }
+.hb-admin-sidebar .hb-admin-nav a[href="../"] { margin-top: 14px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
