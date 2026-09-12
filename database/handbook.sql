@@ -25,7 +25,6 @@ CREATE TABLE users (
   updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   ac_status TINYINT NOT NULL DEFAULT 0 COMMENT '0=not verified,1=active,2=blocked',
   role ENUM('User','Admin') NOT NULL DEFAULT 'User',
-  password_text TEXT NOT NULL,
   PRIMARY KEY (id),
   UNIQUE KEY uq_users_email (email),
   UNIQUE KEY uq_users_username (username),
