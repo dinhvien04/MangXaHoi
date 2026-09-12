@@ -35,7 +35,7 @@ Backend được chia theo feature (`auth`, `users`, `posts`, `interactions`, `m
 5. Mở `http://localhost/MangXaHoi/`.
 6. Admin: `http://localhost/MangXaHoi/admin/`.
 
-Database có thể cấu hình bằng `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`.
+Database có thể cấu hình bằng `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`.
 
 ## Nâng cấp database cũ
 

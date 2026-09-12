@@ -145,9 +145,13 @@ function deletePost($postId, $asAdmin = false)
 function validatePostImage($imageData)
 {
     if (empty($imageData['name'])) {
-        return ['status' => false, 'msg' => 'Vui lòng chọn hình ảnh', 'field' => 'post_img'];
+        return ['status' => true, 'has_file' => false];
     }
-    if (($imageData['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK || empty($imageData['tmp_name']) || !is_file($imageData['tmp_name'])) {
+    $errorCode = $imageData['error'] ?? UPLOAD_ERR_OK;
+    if ($errorCode === UPLOAD_ERR_NO_FILE) {
+        return ['status' => true, 'has_file' => false];
+    }
+    if ($errorCode !== UPLOAD_ERR_OK || empty($imageData['tmp_name']) || !is_file($imageData['tmp_name'])) {
         return ['status' => false, 'msg' => 'Ảnh tải lên không hợp lệ', 'field' => 'post_img'];
     }
     if ((int) ($imageData['size'] ?? 0) <= 0 || (int) ($imageData['size'] ?? 0) > 2000000) {
@@ -157,10 +161,10 @@ function validatePostImage($imageData)
     if (!in_array($mime, ['image/jpeg', 'image/png'], true) || @getimagesize($imageData['tmp_name']) === false) {
         return ['status' => false, 'msg' => 'Chỉ cho phép hình ảnh JPG hoặc PNG hợp lệ', 'field' => 'post_img'];
     }
-    return ['status' => true];
+    return ['status' => true, 'has_file' => true];
 }
 
-function createPost($text, $image)
+function createPost($text, $image = null)
 {
     global $db;
     $postText = trim((string) ($text['post_text'] ?? ''));
@@ -171,15 +175,25 @@ function createPost($text, $image)
     if (!getActiveUser($userId)) {
         return false;
     }
-    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($image['tmp_name']);
-    $extension = $mime === 'image/png' ? 'png' : 'jpg';
-    $imageName = bin2hex(random_bytes(16)) . '.' . $extension;
-    $imageDir = dirname(__DIR__, 2) . '/public/images/posts';
-    if (!is_dir($imageDir) && !mkdir($imageDir, 0775, true) && !is_dir($imageDir)) {
-        return false;
+
+    $imageName = null;
+    $destination = null;
+
+    if (!empty($image) && !empty($image['tmp_name']) && is_file($image['tmp_name'])) {
+        $mime = (new finfo(FILEINFO_MIME_TYPE))->file($image['tmp_name']);
+        $extension = $mime === 'image/png' ? 'png' : 'jpg';
+        $imageName = bin2hex(random_bytes(16)) . '.' . $extension;
+        $imageDir = dirname(__DIR__, 2) . '/public/images/posts';
+        if (!is_dir($imageDir) && !mkdir($imageDir, 0775, true) && !is_dir($imageDir)) {
+            return false;
+        }
+        $destination = $imageDir . '/' . $imageName;
+        if (!move_uploaded_file($image['tmp_name'], $destination)) {
+            return false;
+        }
     }
-    $destination = $imageDir . '/' . $imageName;
-    if (!move_uploaded_file($image['tmp_name'], $destination)) {
+
+    if ($postText === '' && $imageName === null) {
         return false;
     }
 
@@ -192,7 +206,7 @@ function createPost($text, $image)
         $ok = false;
     }
 
-    if (!$ok) {
+    if (!$ok && $destination !== null) {
         @unlink($destination);
     }
     return $ok;

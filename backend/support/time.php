@@ -19,5 +19,6 @@ function gettime($date)
 
 function show_time($time)
 {
-    return '<time style="font-size:small" class="timeago text-muted text-small" datetime="' . e($time) . '"></time>';
+    $formatted = gettime($time);
+    return '<time style="font-size:small" class="timeago text-muted text-small" datetime="' . htmlspecialchars((string) $time, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars((string) $formatted, ENT_QUOTES, 'UTF-8') . '</time>';
 }

@@ -5,7 +5,7 @@
             <?= csrfField() ?>
             <?php if (isset($_GET['success'])): ?><div class="hb-alert hb-alert-success"><i class="bi bi-check-circle-fill"></i><span>Hồ sơ đã được cập nhật.</span></div><?php endif; ?>
             <div class="hb-avatar-editor">
-                <img src="public/images/profile/<?= e($user['profile_pic']) ?>" alt="Ảnh đại diện">
+                <img src="public/images/profile/<?= e($user['profile_pic']) ?>" id="profile_pic_preview" alt="Ảnh đại diện">
                 <div><label class="hb-secondary-button" for="profile_pic"><i class="bi bi-camera"></i> Đổi ảnh đại diện</label><input class="visually-hidden" id="profile_pic" type="file" name="profile_pic" accept="image/jpeg,image/png"><small>JPG hoặc PNG · tối đa 1 MB</small><?= showError('profile_pic') ?></div>
             </div>
             <div class="hb-settings-divider"></div>
@@ -21,3 +21,15 @@
         </form>
     </section>
 </div>
+<script>
+document.getElementById('profile_pic')?.addEventListener('change', function () {
+    const file = this.files && this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const preview = document.getElementById('profile_pic_preview');
+        if (preview) preview.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+</script>

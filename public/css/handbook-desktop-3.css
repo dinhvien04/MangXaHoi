@@ -38,13 +38,17 @@
 .hb-upload-zone { min-height: 240px; border: 1px dashed #b8c2d0; border-radius: 14px; background: #f9fafb; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: .15s ease; }
 .hb-upload-zone:hover { border-color: var(--hb-blue); background: #f5f9ff; }
 .hb-upload-zone > img { width: 100%; max-height: 360px; object-fit: contain; }
-.hb-upload-placeholder { display: flex; flex-direction: column; align-items: center; color: var(--hb-muted); }
+.hb-upload-placeholder { display: flex !important; flex-direction: column; align-items: center; color: var(--hb-muted); }
 .hb-upload-icon { width: 52px; height: 52px; border-radius: 50%; background: var(--hb-blue-soft); color: var(--hb-blue); display: flex; align-items: center; justify-content: center; font-size: 21px; margin-bottom: 10px; }
 .hb-upload-placeholder strong { color: var(--hb-text); font-size: 13px; }
 .hb-upload-placeholder small { margin-top: 4px; font-size: 10px; }
-.hb-upload-zone:has(> img[style*="display: none"]) .hb-upload-placeholder { display: flex; }
-.hb-upload-zone:has(> img:not([style*="display: none"])) .hb-upload-placeholder { display: none; }
-.hb-side-panel { width: 430px; max-width: 92vw; border-left: 0; box-shadow: -10px 0 36px rgba(15,23,42,.12); }
+.hb-upload-zone.has-image .hb-upload-placeholder { display: none !important; }
+.hb-upload-zone:not(.has-image) .hb-upload-placeholder { display: flex !important; }
+.hb-upload-zone:not(.has-image) > img { display: none !important; }
+.hb-remove-img-btn { position: absolute; top: 12px; right: 12px; z-index: 10; background-color: #fff; border: 1px solid var(--hb-line); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.15); cursor: pointer; }
+.hb-remove-img-btn:hover { background-color: #f1f5f9; }
+.hb-side-panel { width: 430px; max-width: 92vw; border-left: 0; box-shadow: none; }
+.hb-side-panel.show { box-shadow: -10px 0 36px rgba(15,23,42,.12); }
 .hb-side-panel .offcanvas-header { min-height: 78px; padding: 18px 20px 10px; background: #fff; color: var(--hb-text); }
 .hb-side-panel .offcanvas-header > div { display: flex; flex-direction: column; }
 .hb-side-panel .offcanvas-title { font-size: 20px; font-weight: 700; }

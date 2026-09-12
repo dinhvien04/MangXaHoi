@@ -256,11 +256,18 @@ if ($action === 'report_post') {
 if ($action === 'add_post') {
     $file = $_FILES['post_img'] ?? [];
     $response = validatePostImage($file);
-    if ($response['status'] && createPost($_POST, $file)) {
-        header('Location: ./?new_post_added');
-        exit();
-    }
     if ($response['status']) {
+        $postText = trim((string) ($_POST['post_text'] ?? ''));
+        $hasFile = !empty($response['has_file']);
+        if ($postText === '' && !$hasFile) {
+            $_SESSION['error'] = ['status' => false, 'msg' => 'Vui lòng nhập nội dung bài viết hoặc chọn ảnh.', 'field' => 'post_img'];
+            header('Location: ./');
+            exit();
+        }
+        if (createPost($_POST, $hasFile ? $file : null)) {
+            header('Location: ./?new_post_added');
+            exit();
+        }
         $response = ['status' => false, 'msg' => 'Không thể tạo bài đăng.', 'field' => 'post_img'];
     }
     $_SESSION['error'] = $response;

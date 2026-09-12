@@ -80,9 +80,9 @@
     .hb-admin-post-thumb { width: 130px; }
 }
 @media (max-width: 1050px) {
-    .hb-topbar { grid-template-columns: 1fr auto; }
-    .hb-topbar-nav { display: none; }
-    .hb-global-search { width: min(360px, 45vw); }
+    .hb-topbar { grid-template-columns: auto auto auto; justify-content: space-between; gap: 12px; }
+    .hb-global-search { width: 220px; }
+    .hb-topnav-item { min-width: 56px; }
     .hb-app-shell { grid-template-columns: 220px minmax(0, 660px); }
     .hb-right-rail { display: none; }
     .hb-profile-content { grid-template-columns: 300px minmax(0,1fr); }

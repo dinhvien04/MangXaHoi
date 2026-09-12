@@ -1,4 +1,12 @@
 .env
+.claude/
 smtp_config.php
 /config/smtp.php
 /vendor/
+public/images/posts/*
+!public/images/posts/.gitkeep
+public/images/profile/*
+!public/images/profile/default_profile.jpg
+!public/images/profile/.gitkeep
+!public/images/icon.png
+!public/images/handbook.png

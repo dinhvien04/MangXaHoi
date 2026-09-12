@@ -6,21 +6,28 @@
                 <div><h5 class="modal-title">Tạo bài viết</h5><small>Đăng ảnh và chia sẻ nội dung mới.</small></div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
-            <form method="post" action="?action=add_post" enctype="multipart/form-data">
+            <form method="post" action="?action=add_post" enctype="multipart/form-data" id="form_add_post">
                 <?= csrfField() ?>
                 <div class="modal-body">
                     <div class="hb-modal-user">
                         <img class="hb-avatar hb-avatar-lg" src="public/images/profile/<?= e($user['profile_pic']) ?>" alt="">
                         <span><strong><?= e($user['first_name'] . ' ' . $user['last_name']) ?></strong><small><i class="bi bi-globe2"></i> Công khai</small></span>
                     </div>
-                    <textarea name="post_text" class="hb-create-post-textarea" rows="4" maxlength="10000" placeholder="Bạn đang nghĩ gì thế?"></textarea>
-                    <label class="hb-upload-zone" for="select_post_img">
-                        <img src="" style="display:none" id="post_img" alt="Xem trước ảnh bài đăng">
-                        <span class="hb-upload-placeholder"><span class="hb-upload-icon"><i class="bi bi-image"></i></span><strong>Thêm ảnh JPG hoặc PNG</strong><small>Tối đa 2 MB</small></span>
-                    </label>
-                    <input class="visually-hidden" name="post_img" type="file" id="select_post_img" accept="image/jpeg,image/png" required>
+                    <textarea name="post_text" id="post_text_input" class="hb-create-post-textarea" rows="4" maxlength="10000" placeholder="<?= e($user['first_name']) ?> ơi, bạn đang nghĩ gì thế?"></textarea>
+                    <div class="position-relative">
+                        <label class="hb-upload-zone" for="select_post_img">
+                            <img src="" style="display:none" id="post_img" alt="Xem trước ảnh bài đăng">
+                            <span class="hb-upload-placeholder">
+                                <span class="hb-upload-icon"><i class="bi bi-image"></i></span>
+                                <strong>Thêm ảnh JPG hoặc PNG</strong>
+                                <small>Tối đa 2 MB (tùy chọn)</small>
+                            </span>
+                        </label>
+                        <button type="button" class="btn-close hb-remove-img-btn" id="remove_post_img" style="display:none" aria-label="Xóa ảnh"></button>
+                    </div>
+                    <input class="visually-hidden" name="post_img" type="file" id="select_post_img" accept="image/jpeg,image/png">
                 </div>
-                <div class="modal-footer"><button type="button" class="hb-secondary-button" data-bs-dismiss="modal">Hủy</button><button type="submit" class="hb-primary-button hb-grow-button">Đăng bài</button></div>
+                <div class="modal-footer"><button type="button" class="hb-secondary-button" data-bs-dismiss="modal">Hủy</button><button type="submit" class="hb-primary-button hb-grow-button" id="btn_submit_post">Đăng bài</button></div>
             </form>
         </div>
     </div>
@@ -36,7 +43,7 @@
         <?php $notifications = getNotifications(50, 0); foreach ($notifications as $not): ?>
             <a class="hb-notification-item <?= (int) $not['read_status'] === 0 ? 'is-unread' : '' ?>" href="?u=<?= rawurlencode($not['from_username']) ?>">
                 <img class="hb-avatar hb-avatar-md" src="public/images/profile/<?= e($not['from_profile_pic']) ?>" alt="">
-                <span class="hb-notification-copy"><strong><?= e($not['from_first_name'] . ' ' . $not['from_last_name']) ?></strong><span><?= e($not['message']) ?></span><time class="timeago" datetime="<?= e($not['created_at']) ?>"></time></span>
+                <span class="hb-notification-copy"><strong><?= e($not['from_first_name'] . ' ' . $not['from_last_name']) ?></strong><span><?= e($not['message']) ?></span><?= show_time($not['created_at']) ?></span>
                 <?php if ((int) $not['read_status'] === 0): ?><span class="hb-unread-dot" aria-label="Chưa đọc"></span><?php endif; ?>
             </a>
         <?php endforeach; if (empty($notifications)): ?>

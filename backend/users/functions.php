@@ -1,5 +1,15 @@
 <?php
 
+function ensureUserProfilePic(?array &$row): void
+{
+    if ($row) {
+        $pic = basename((string) ($row['profile_pic'] ?? ''));
+        if ($pic === '' || !is_file(dirname(__DIR__, 2) . '/public/images/profile/' . $pic)) {
+            $row['profile_pic'] = 'default_profile.jpg';
+        }
+    }
+}
+
 function getUser($userId)
 {
     global $db;
@@ -12,6 +22,7 @@ function getUser($userId)
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
     $stmt->close();
+    ensureUserProfilePic($row);
     return $row ?: null;
 }
 
@@ -27,6 +38,7 @@ function getActiveUser($userId)
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
     $stmt->close();
+    ensureUserProfilePic($row);
     return $row ?: null;
 }
 
@@ -42,6 +54,7 @@ function getUserByUsername($username)
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
     $stmt->close();
+    ensureUserProfilePic($row);
     return $row ?: null;
 }
 

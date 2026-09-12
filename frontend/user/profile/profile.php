@@ -70,7 +70,7 @@ $isBlockedRelation = checkBS($profile['id']);
                 <section class="hb-card hb-composer-card">
                     <div class="hb-composer-row"><img class="hb-avatar hb-avatar-md" src="public/images/profile/<?= e($user['profile_pic']) ?>" alt=""><button class="hb-composer-input" type="button" data-bs-toggle="modal" data-bs-target="#addpost"><?= e($user['first_name']) ?> ơi, bạn đang nghĩ gì thế?</button></div>
                     <div class="hb-card-divider"></div>
-                    <div class="hb-composer-actions"><button type="button" data-bs-toggle="modal" data-bs-target="#addpost"><i class="bi bi-image text-success"></i><span>Ảnh / Video</span></button><button type="button" data-bs-toggle="modal" data-bs-target="#addpost"><i class="bi bi-emoji-smile text-warning"></i><span>Cảm xúc</span></button><button type="button" data-bs-toggle="modal" data-bs-target="#addpost"><i class="bi bi-calendar-event text-danger"></i><span>Sự kiện</span></button></div>
+                    <div class="hb-composer-actions"><button type="button" data-bs-toggle="modal" data-bs-target="#addpost" data-action="open-post-photo"><i class="bi bi-image text-success"></i><span>Ảnh / Video</span></button><button type="button" data-bs-toggle="modal" data-bs-target="#addpost" onclick="setTimeout(()=>document.querySelector('#post_text_input')?.focus(),300)"><i class="bi bi-emoji-smile text-warning"></i><span>Cảm xúc</span></button><button type="button" data-bs-toggle="modal" data-bs-target="#addpost" onclick="setTimeout(()=>document.querySelector('#post_text_input')?.focus(),300)"><i class="bi bi-calendar-event text-danger"></i><span>Sự kiện</span></button></div>
                 </section>
             <?php endif; ?>
 
@@ -82,7 +82,7 @@ $isBlockedRelation = checkBS($profile['id']);
                 <?php foreach ($profilePosts as $post): $likes = getLikes($post['id']); $comments = getComments($post['id'], 50, 0); ?>
                     <article class="hb-card hb-post-card" id="post-<?= (int) $post['id'] ?>">
                         <header class="hb-post-header">
-                            <div class="hb-post-author"><img class="hb-avatar hb-avatar-md" src="public/images/profile/<?= e($profile['profile_pic']) ?>" alt=""><span><strong><?= e($profile['first_name'] . ' ' . $profile['last_name']) ?></strong><small><?= e(show_time($post['created_at'])) ?> · <i class="bi bi-globe2"></i></small></span></div>
+                            <div class="hb-post-author"><img class="hb-avatar hb-avatar-md" src="public/images/profile/<?= e($profile['profile_pic']) ?>" alt=""><span><strong><?= e($profile['first_name'] . ' ' . $profile['last_name']) ?></strong><small><?= show_time($post['created_at']) ?> · <i class="bi bi-globe2"></i></small></span></div>
                             <div class="dropdown">
                                 <button class="hb-icon-button" type="button" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
                                 <ul class="dropdown-menu dropdown-menu-end hb-dropdown-menu">
@@ -96,7 +96,9 @@ $isBlockedRelation = checkBS($profile['id']);
                             </div>
                         </header>
                         <?php if ($post['post_text'] !== ''): ?><div class="hb-post-copy"><?= nl2br(e($post['post_text'])) ?></div><?php endif; ?>
-                        <button class="hb-post-media-button" type="button" data-bs-toggle="modal" data-bs-target="#profilePost<?= (int) $post['id'] ?>" aria-label="Xem chi tiết bài viết"><img src="public/images/posts/<?= e($post['post_img']) ?>" class="hb-post-media" alt="Bài đăng"></button>
+                        <?php if (!empty($post['post_img']) && is_file(dirname(__DIR__, 3) . '/public/images/posts/' . basename((string) $post['post_img']))): ?>
+                            <button class="hb-post-media-button" type="button" data-bs-toggle="modal" data-bs-target="#profilePost<?= (int) $post['id'] ?>" aria-label="Xem chi tiết bài viết"><img src="public/images/posts/<?= e($post['post_img']) ?>" class="hb-post-media" alt="Bài đăng"></button>
+                        <?php endif; ?>
                         <div class="hb-post-stats"><span><span class="hb-like-dot"><i class="bi bi-hand-thumbs-up-fill"></i></span> <span id="likecount<?= (int) $post['id'] ?>"><?= count($likes) ?></span></span><span><?= count($comments) ?> bình luận</span></div>
                         <div class="hb-card-divider"></div>
                         <div class="hb-post-actions">
@@ -113,14 +115,14 @@ $isBlockedRelation = checkBS($profile['id']);
                             <div class="modal-content">
                                 <button type="button" class="hb-modal-close" data-bs-dismiss="modal" aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
                                 <div class="hb-post-detail-grid">
-                                    <div class="hb-post-detail-media"><img src="public/images/posts/<?= e($post['post_img']) ?>" alt="Bài đăng"></div>
+                                    <?php if (!empty($post['post_img']) && is_file(dirname(__DIR__, 3) . '/public/images/posts/' . basename((string) $post['post_img']))): ?><div class="hb-post-detail-media"><img src="public/images/posts/<?= e($post['post_img']) ?>" alt="Bài đăng"></div><?php endif; ?>
                                     <div class="hb-post-detail-side">
-                                        <div class="hb-post-header"><div class="hb-post-author"><img class="hb-avatar hb-avatar-md" src="public/images/profile/<?= e($profile['profile_pic']) ?>" alt=""><span><strong><?= e($profile['first_name'].' '.$profile['last_name']) ?></strong><small><?= e(show_time($post['created_at'])) ?> · Công khai</small></span></div></div>
+                                        <div class="hb-post-header"><div class="hb-post-author"><img class="hb-avatar hb-avatar-md" src="public/images/profile/<?= e($profile['profile_pic']) ?>" alt=""><span><strong><?= e($profile['first_name'].' '.$profile['last_name']) ?></strong><small><?= show_time($post['created_at']) ?> · Công khai</small></span></div></div>
                                         <?php if ($post['post_text'] !== ''): ?><div class="hb-post-copy hb-post-detail-copy"><?= nl2br(e($post['post_text'])) ?></div><?php endif; ?>
                                         <div class="hb-post-stats"><span><?= count($likes) ?> lượt thích</span><span><?= count($comments) ?> bình luận</span></div>
                                         <div class="hb-card-divider"></div>
                                         <div class="hb-detail-comments" id="profile-comments-<?= (int) $post['id'] ?>">
-                                            <?php foreach ($comments as $comment): ?><div class="hb-comment-item"><img class="hb-avatar hb-avatar-sm" src="public/images/profile/<?= e($comment['profile_pic']) ?>" alt=""><div class="hb-comment-main"><div class="hb-comment-bubble"><a href="?u=<?= rawurlencode($comment['username']) ?>"><?= e($comment['first_name'].' '.$comment['last_name']) ?></a><p><?= e($comment['comment']) ?></p></div><small><?= e(show_time($comment['created_at'])) ?></small></div></div><?php endforeach; ?>
+                                            <?php foreach ($comments as $comment): ?><div class="hb-comment-item"><img class="hb-avatar hb-avatar-sm" src="public/images/profile/<?= e($comment['profile_pic']) ?>" alt=""><div class="hb-comment-main"><div class="hb-comment-bubble"><a href="?u=<?= rawurlencode($comment['username']) ?>"><?= e($comment['first_name'].' '.$comment['last_name']) ?></a><p><?= e($comment['comment']) ?></p></div><small><?= show_time($comment['created_at']) ?></small></div></div><?php endforeach; ?>
                                         </div>
                                         <?php if (checkFollowStatus($profile['id']) || $isOwnProfile): ?>
                                             <div class="hb-comment-composer hb-detail-comment-composer"><img class="hb-avatar hb-avatar-sm" src="public/images/profile/<?= e($user['profile_pic']) ?>" alt=""><div class="hb-comment-input-wrap"><input class="comment-input" maxlength="2000" placeholder="Viết bình luận..."><button class="add-comment" type="button" data-cs="profile-comments-<?= (int) $post['id'] ?>" data-post-id="<?= (int) $post['id'] ?>"><i class="bi bi-send-fill"></i></button></div></div>

@@ -24,6 +24,7 @@
 
     <main class="hb-feed-column">
         <?= showError('post_img') ?>
+        <?= showError('post_text') ?>
 
         <section class="hb-card hb-composer-card" aria-label="Tạo bài viết">
             <div class="hb-composer-row">
@@ -32,9 +33,9 @@
             </div>
             <div class="hb-card-divider"></div>
             <div class="hb-composer-actions">
-                <button type="button" data-bs-toggle="modal" data-bs-target="#addpost"><i class="bi bi-image text-success"></i><span>Ảnh / Video</span></button>
-                <button type="button" data-bs-toggle="modal" data-bs-target="#addpost"><i class="bi bi-emoji-smile text-warning"></i><span>Cảm xúc</span></button>
-                <button type="button" data-bs-toggle="modal" data-bs-target="#addpost"><i class="bi bi-calendar-event text-danger"></i><span>Sự kiện</span></button>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#addpost" data-action="open-post-photo"><i class="bi bi-image text-success"></i><span>Ảnh / Video</span></button>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#addpost" onclick="setTimeout(()=>document.querySelector('#post_text_input')?.focus(),300)"><i class="bi bi-emoji-smile text-warning"></i><span>Cảm xúc</span></button>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#addpost" onclick="setTimeout(()=>document.querySelector('#post_text_input')?.focus(),300)"><i class="bi bi-calendar-event text-danger"></i><span>Sự kiện</span></button>
             </div>
         </section>
 
@@ -52,7 +53,7 @@
                 <header class="hb-post-header">
                     <a class="hb-post-author" href="?u=<?= rawurlencode($post['username']) ?>">
                         <img class="hb-avatar hb-avatar-md" src="public/images/profile/<?= e($post['profile_pic']) ?>" alt="">
-                        <span><strong><?= e($post['first_name'] . ' ' . $post['last_name']) ?></strong><small><?= e(show_time($post['created_at'])) ?> · <i class="bi bi-globe2"></i></small></span>
+                        <span><strong><?= e($post['first_name'] . ' ' . $post['last_name']) ?></strong><small><?= show_time($post['created_at']) ?> · <i class="bi bi-globe2"></i></small></span>
                     </a>
                     <div class="dropdown">
                         <button class="hb-icon-button" type="button" data-bs-toggle="dropdown" aria-label="Tùy chọn bài viết"><i class="bi bi-three-dots"></i></button>
@@ -71,9 +72,11 @@
                     <div class="hb-post-copy"><?= nl2br(e($post['post_text'])) ?></div>
                 <?php endif; ?>
 
-                <div class="hb-post-media-wrap">
-                    <img src="public/images/posts/<?= e($post['post_img']) ?>" loading="lazy" class="hb-post-media post-image" alt="Ảnh bài đăng của <?= e($post['first_name']) ?>">
-                </div>
+                <?php if (!empty($post['post_img']) && is_file(dirname(__DIR__, 3) . '/public/images/posts/' . basename((string) $post['post_img']))): ?>
+                    <div class="hb-post-media-wrap">
+                        <img src="public/images/posts/<?= e($post['post_img']) ?>" loading="lazy" class="hb-post-media post-image" alt="Ảnh bài đăng của <?= e($post['first_name']) ?>">
+                    </div>
+                <?php endif; ?>
 
                 <div class="hb-post-stats">
                     <span><span class="hb-like-dot"><i class="bi bi-hand-thumbs-up-fill"></i></span> <span id="likecount<?= (int) $post['id'] ?>"><?= (int) $post['like_count'] ?></span></span>
@@ -96,7 +99,7 @@
                             <img class="hb-avatar hb-avatar-sm" src="public/images/profile/<?= e($comment['profile_pic']) ?>" alt="">
                             <div class="hb-comment-main">
                                 <div class="hb-comment-bubble"><a href="?u=<?= rawurlencode($comment['username']) ?>"><?= e($comment['first_name'] . ' ' . $comment['last_name']) ?></a><p><?= e($comment['comment']) ?></p></div>
-                                <small><?= e(show_time($comment['created_at'])) ?></small>
+                                <small><?= show_time($comment['created_at']) ?></small>
                             </div>
                             <?php if ((int) $comment['user_id'] === (int) $user['id']): ?>
                                 <form method="post" action="?action=delete_comment" class="hb-comment-delete"><?= csrfField() ?><input type="hidden" name="comment_id" value="<?= (int) $comment['id'] ?>"><button type="submit" aria-label="Xóa bình luận"><i class="bi bi-trash3"></i></button></form>

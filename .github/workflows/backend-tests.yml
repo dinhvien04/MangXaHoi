@@ -23,6 +23,7 @@ jobs:
           --health-retries=10
     env:
       DB_HOST: 127.0.0.1
+      DB_PORT: 3306
       DB_NAME: handbook_test
       DB_USER: root
       DB_PASS: root
