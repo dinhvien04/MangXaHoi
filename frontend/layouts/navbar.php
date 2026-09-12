@@ -28,6 +28,9 @@
     </nav>
 
     <div class="hb-topbar-actions">
+        <?php if ((string)($user['role'] ?? 'User') === 'Admin'): ?>
+            <a class="hb-circle-action" href="admin/" aria-label="Mở Control Center" title="Control Center"><i class="bi bi-shield-lock-fill"></i></a>
+        <?php endif; ?>
         <button class="hb-circle-action" type="button" data-bs-toggle="modal" data-bs-target="#addpost" aria-label="Tạo bài viết"><i class="bi bi-plus-lg"></i></button>
         <button class="hb-circle-action position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#message_sidebar" aria-label="Tin nhắn">
             <i class="bi bi-chat-dots-fill"></i><span class="hb-nav-badge hb-message-badge" id="msgcounter"></span>
@@ -42,12 +45,15 @@
                 <li class="px-2 pt-2 pb-1">
                     <a class="hb-dropdown-profile" href="?u=<?= rawurlencode($user['username']) ?>">
                         <img src="public/images/profile/<?= e($user['profile_pic']) ?>" alt="">
-                        <span><strong><?= e($user['first_name'] . ' ' . $user['last_name']) ?></strong><small>@<?= e($user['username']) ?></small></span>
+                        <span><strong><?= e($user['first_name'] . ' ' . $user['last_name']) ?></strong><small>@<?= e($user['username']) ?> · <?= e($user['role']) ?></small></span>
                     </a>
                 </li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="?u=<?= rawurlencode($user['username']) ?>"><i class="bi bi-person-circle"></i> Hồ sơ của tôi</a></li>
                 <li><a class="dropdown-item" href="?editprofile"><i class="bi bi-pencil-square"></i> Chỉnh sửa hồ sơ</a></li>
+                <?php if ((string)($user['role'] ?? 'User') === 'Admin'): ?>
+                    <li><a class="dropdown-item" href="admin/"><i class="bi bi-shield-lock-fill"></i> Control Center</a></li>
+                <?php endif; ?>
                 <li><hr class="dropdown-divider"></li>
                 <li><form method="post" action="?action=logout" class="m-0"><?= csrfField() ?><button class="dropdown-item text-danger" type="submit"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button></form></li>
             </ul>
