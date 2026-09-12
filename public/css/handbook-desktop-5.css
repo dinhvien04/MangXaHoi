@@ -1,0 +1,103 @@
+/* Desktop fidelity and interaction polish for the approved Figma set (01–24). */
+
+:where(a, button, input, textarea, select, summary):focus-visible {
+    outline: 3px solid rgba(8, 102, 255, .28);
+    outline-offset: 2px;
+}
+
+.hb-otp-source {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+.hb-otp-boxes {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-top: 8px;
+}
+.hb-otp-box {
+    width: 100%;
+    height: 58px;
+    border: 1px solid #d0d5dd;
+    border-radius: 10px;
+    background: #fff;
+    color: var(--hb-text);
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    outline: 0;
+    caret-color: var(--hb-blue);
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.hb-otp-box:focus {
+    border-color: #84adff;
+    box-shadow: 0 0 0 4px rgba(8,102,255,.09);
+    background: #fbfdff;
+}
+.hb-otp-box.is-filled { border-color: #b2ccff; background: #f8fbff; }
+.hb-otp-meta {
+    min-height: 30px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    color: var(--hb-muted);
+    font-size: 12px;
+}
+.hb-otp-countdown { color: var(--hb-blue); font-weight: 700; font-variant-numeric: tabular-nums; }
+.hb-password-match-error { margin-top: 6px; color: var(--hb-red); font-size: 12px; }
+
+.hb-panel-search { position: relative; display: flex; align-items: center; gap: 9px; margin: 0 16px 12px; padding: 0 13px; min-height: 42px; border-radius: 999px; background: var(--hb-chip); color: var(--hb-muted); }
+.hb-panel-search input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--hb-text); font-size: 13px; }
+.hb-panel-search input::placeholder { color: #98a2b3; }
+.hb-conversation-row { width: 100%; min-height: 76px; padding: 10px 12px; border: 0; border-radius: 12px; background: transparent; display: grid; grid-template-columns: 44px minmax(0,1fr) auto; align-items: center; gap: 11px; text-align: left; cursor: pointer; }
+.hb-conversation-row:hover { background: var(--hb-chip); }
+.hb-conversation-row img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
+.hb-conversation-copy { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.hb-conversation-copy strong { color: var(--hb-text); font-size: 13px; }
+.hb-conversation-copy span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--hb-muted); font-size: 12px; }
+.hb-conversation-meta { align-self: stretch; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 7px; color: var(--hb-muted); font-size: 10px; white-space: nowrap; }
+.hb-conversation-unread { width: 8px; height: 8px; border-radius: 50%; background: var(--hb-blue); }
+.hb-chat-message { max-width: 76%; display: flex; flex-direction: column; gap: 4px; align-self: flex-start; }
+.hb-chat-message.is-mine { align-self: flex-end; align-items: flex-end; }
+.hb-chat-bubble { padding: 10px 13px; border-radius: 16px 16px 16px 4px; background: var(--hb-chip); color: var(--hb-text); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.hb-chat-message.is-mine .hb-chat-bubble { border-radius: 16px 16px 4px 16px; background: var(--hb-blue); color: #fff; }
+.hb-chat-time { color: var(--hb-muted); font-size: 9px; }
+
+.hb-search-user-row { min-height: 64px; padding: 8px; border-radius: 10px; display: grid; grid-template-columns: 42px minmax(0,1fr) auto; gap: 10px; align-items: center; }
+.hb-search-user-row:hover { background: var(--hb-chip); }
+.hb-search-user-row img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
+.hb-search-user-copy { min-width: 0; display: flex; flex-direction: column; }
+.hb-search-user-copy a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--hb-text); font-size: 13px; font-weight: 600; text-decoration: none; }
+.hb-search-user-copy span { color: var(--hb-muted); font-size: 11px; }
+.hb-search-user-open { min-height: 32px; padding: 0 10px; border-radius: 8px; background: var(--hb-blue-soft); color: var(--hb-blue); font-size: 10px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; }
+
+.hb-toast-region { position: fixed; right: 24px; bottom: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+.hb-toast { width: min(380px, calc(100vw - 32px)); padding: 13px 15px; border: 1px solid var(--hb-line); border-radius: 12px; background: #fff; box-shadow: var(--hb-shadow-lg); display: flex; align-items: flex-start; gap: 10px; color: var(--hb-text); font-size: 13px; transform: translateY(8px); opacity: 0; animation: hbToastIn .18s ease forwards; }
+.hb-toast i { color: var(--hb-blue); margin-top: 1px; }
+.hb-toast.is-success i { color: var(--hb-green); }
+.hb-toast.is-danger i { color: var(--hb-red); }
+@keyframes hbToastIn { to { transform: translateY(0); opacity: 1; } }
+
+.hb-admin-detail-trigger { color: #344054; background: #f2f4f7; }
+.hb-admin-detail-overlay { position: fixed; inset: 0; z-index: 2500; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(15,23,42,.46); }
+.hb-admin-detail-overlay.is-open { display: flex; }
+.hb-admin-detail-card { width: min(520px, 100%); border-radius: 16px; background: #fff; box-shadow: 0 28px 70px rgba(15,23,42,.25); overflow: hidden; }
+.hb-admin-detail-head { min-height: 68px; padding: 16px 18px; border-bottom: 1px solid var(--hb-line); display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.hb-admin-detail-head h2 { margin: 0; font-size: 18px; }
+.hb-admin-detail-close { width: 36px; height: 36px; border-radius: 50%; background: var(--hb-chip); color: var(--hb-text); cursor: pointer; }
+.hb-admin-detail-body { padding: 18px; display: grid; grid-template-columns: 135px minmax(0,1fr); gap: 12px 18px; font-size: 12px; }
+.hb-admin-detail-body dt { margin: 0; color: var(--hb-muted); font-weight: 600; }
+.hb-admin-detail-body dd { margin: 0; color: var(--hb-text); font-weight: 600; overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}
