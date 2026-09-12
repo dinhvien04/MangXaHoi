@@ -33,7 +33,7 @@ function getActiveUser($userId)
     if ($userId <= 0) {
         return null;
     }
-    $stmt = $db->prepare("SELECT * FROM users WHERE id = ? AND role = 'User' AND ac_status = 1 LIMIT 1");
+    $stmt = $db->prepare("SELECT * FROM users WHERE id = ? AND ac_status = 1 LIMIT 1");
     $stmt->bind_param('i', $userId);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
@@ -49,7 +49,7 @@ function getUserByUsername($username)
     if ($username === '') {
         return null;
     }
-    $stmt = $db->prepare("SELECT * FROM users WHERE username = ? AND role = 'User' LIMIT 1");
+    $stmt = $db->prepare('SELECT * FROM users WHERE username = ? LIMIT 1');
     $stmt->bind_param('s', $username);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
@@ -114,7 +114,7 @@ function updateProfile($data, $imageData)
     global $db;
     $userId = (int) ($_SESSION['userdata']['id'] ?? 0);
     $current = getUser($userId);
-    if (!$current || (int) $current['ac_status'] !== 1 || (string) $current['role'] !== 'User') {
+    if (!$current || (int) $current['ac_status'] !== 1 || !in_array((string) $current['role'], ['User', 'Admin'], true)) {
         return false;
     }
 
@@ -142,10 +142,10 @@ function updateProfile($data, $imageData)
 
     try {
         if ($newProfilePic !== null) {
-            $stmt = $db->prepare("UPDATE users SET first_name = ?, last_name = ?, username = ?, password = ?, password_text = '', profile_pic = ? WHERE id = ?");
+            $stmt = $db->prepare('UPDATE users SET first_name = ?, last_name = ?, username = ?, password = ?, profile_pic = ? WHERE id = ?');
             $stmt->bind_param('sssssi', $firstName, $lastName, $username, $password, $newProfilePic, $userId);
         } else {
-            $stmt = $db->prepare("UPDATE users SET first_name = ?, last_name = ?, username = ?, password = ?, password_text = '' WHERE id = ?");
+            $stmt = $db->prepare('UPDATE users SET first_name = ?, last_name = ?, username = ?, password = ? WHERE id = ?');
             $stmt->bind_param('ssssi', $firstName, $lastName, $username, $password, $userId);
         }
         $ok = $stmt->execute();
