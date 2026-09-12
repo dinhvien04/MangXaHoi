@@ -50,7 +50,7 @@
         <div><h5 class="offcanvas-title" id="messagesTitle">Tin nhắn</h5><small>Các cuộc trò chuyện gần đây.</small></div>
         <button type="button" class="hb-icon-button" data-bs-dismiss="offcanvas" aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
     </div>
-    <div class="hb-panel-search"><i class="bi bi-search"></i><span>Tìm cuộc trò chuyện</span></div>
+    <label class="hb-panel-search" for="conversation_search"><i class="bi bi-search"></i><input type="search" id="conversation_search" placeholder="Tìm cuộc trò chuyện" autocomplete="off" aria-label="Tìm cuộc trò chuyện"></label>
     <div class="offcanvas-body" id="chatlist"><div class="hb-panel-empty"><span class="spinner-border spinner-border-sm" role="status"></span><strong>Đang tải tin nhắn...</strong></div></div>
 </div>
 
@@ -71,6 +71,7 @@
 </div>
 <?php endif; ?>
 
+<div class="hb-toast-region" id="handbook_toast_region" aria-live="polite" aria-atomic="true"></div>
 <?php if ($user): ?><script>window.currentUserId=<?= (int) $user['id'] ?>;</script><?php endif; ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="public/js/jquery-3.6.0.min.js"></script>
@@ -84,5 +85,6 @@
 <script src="public/js/features/search.js"></script>
 <script src="public/js/features/notifications.js"></script>
 <script src="public/js/features/messages.js"></script>
+<script src="public/js/ui-desktop.js"></script>
 </body>
 </html>
