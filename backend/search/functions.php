@@ -11,9 +11,9 @@ function searchUser($keyword, $limit = 10)
     }
 
     $like = '%' . $keyword . '%';
-    $stmt = $db->prepare("SELECT u.id, u.first_name, u.last_name, u.username, u.profile_pic
+    $stmt = $db->prepare("SELECT u.id, u.first_name, u.last_name, u.username, u.profile_pic, u.role
         FROM users u
-        WHERE u.role = 'User' AND u.ac_status = 1
+        WHERE u.ac_status = 1
           AND (u.username LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)
           AND NOT EXISTS (SELECT 1 FROM block_list b WHERE (b.user_id = ? AND b.blocked_user_id = u.id) OR (b.user_id = u.id AND b.blocked_user_id = ?))
         ORDER BY u.id DESC LIMIT ?");
