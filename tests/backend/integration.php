@@ -136,13 +136,21 @@ check(deleteOwnComment($commentId) === false, 'Deleting an already deleted comme
 $adminId = createTestUser('admin@example.com', 'adminuser');
 activateUser($adminId);
 $db->query("UPDATE users SET role='Admin' WHERE id=" . (int)$adminId);
-unset($_SESSION['Auth'], $_SESSION['userdata']);
-$_SESSION['admin_auth'] = $adminId;
-check(validateAdminSession()['ok'] === true, 'Admin session is valid while role/status are valid');
+
+$adminLogin = checkUser(['username_email' => 'admin@example.com', 'password' => 'Password123!']);
+check($adminLogin['status'] === true && $adminLogin['role'] === 'Admin', 'Unified login authenticates an Admin account from the users table');
+loginAsUser($adminId);
+check(validateUserSession(false)['ok'] === true, 'Admin account can use normal social features with the same session');
+check(validateAdminSession()['ok'] === true, 'Same authenticated session grants Admin access when role is Admin');
+
 $db->query("UPDATE users SET role='User' WHERE id=" . (int)$adminId);
-check(validateAdminSession()['ok'] === false, 'Admin session is revoked immediately after role is removed');
+$adminValidation = validateAdminSession();
+check($adminValidation['ok'] === false && $adminValidation['reason'] === 'forbidden', 'Admin permission is revoked immediately after role is removed');
+check(validateUserSession(false)['ok'] === true, 'Demoted Admin stays logged in as a normal User');
+
 $db->query("UPDATE users SET role='Admin', ac_status=1 WHERE id=" . (int)$adminId);
-$_SESSION['admin_auth'] = $adminId;
+loginAsUser($adminId);
+check(validateAdminSession()['ok'] === true, 'Promoted active account immediately gains Admin access');
 
 $charlie = createTestUser('charlie@example.com', 'charlie');
 $db->query('UPDATE users SET ac_status=2 WHERE id=' . (int)$charlie);
