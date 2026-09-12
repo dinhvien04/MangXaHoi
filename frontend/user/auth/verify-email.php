@@ -13,6 +13,7 @@
             <form method="post" action="?action=verify_email">
                 <?= csrfField() ?>
                 <label class="hb-field"><span>Mã xác minh</span><input class="hb-otp-input" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" name="code" placeholder="000000" autocomplete="one-time-code" required><?= showError('email_verify') ?></label>
+                <div class="hb-otp-meta"><span>Mã chỉ dùng được một lần.</span><span class="hb-otp-countdown" data-otp-expires="<?= (int) ($_SESSION['email_otp']['expires_at'] ?? 0) ?>">Còn 05:00</span></div>
                 <button class="hb-primary-button hb-auth-submit" type="submit">Xác minh Email</button>
             </form>
             <div class="hb-verify-actions"><form method="post" action="?action=resend_code"><?= csrfField() ?><button class="hb-link-button" type="submit">Gửi lại mã</button></form><form method="post" action="?action=logout"><?= csrfField() ?><button class="hb-link-button text-danger" type="submit">Đăng xuất</button></form></div>
