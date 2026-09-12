@@ -8,14 +8,18 @@
         <form class="hb-auth-card" method="post" action="?action=login">
             <?= csrfField() ?>
             <span class="hb-auth-mobile-brand"><span class="hb-brand-mark">H</span> Handbook Social</span>
-            <h2>Chào mừng trở lại</h2><p class="hb-auth-subtitle">Đăng nhập để tiếp tục với Handbook Social.</p>
+            <h2>Chào mừng trở lại</h2>
+            <p class="hb-auth-subtitle">Một form đăng nhập duy nhất cho mọi tài khoản Handbook.</p>
+            <?php if (isset($_GET['next']) && $_GET['next'] === 'admin'): ?>
+                <div class="hb-alert hb-alert-info"><i class="bi bi-shield-lock-fill"></i><span>Hãy đăng nhập bằng tài khoản có vai trò <strong>Admin</strong>. Hệ thống sẽ tự chuyển vào Control Center.</span></div>
+            <?php endif; ?>
             <label class="hb-field"><span>Username hoặc email</span><input type="text" name="username_email" value="<?= e(showFormData('username_email')) ?>" placeholder="vd: dinhvien04" autocomplete="username" required><?= showError('username_email') ?></label>
             <label class="hb-field"><span>Mật khẩu</span><input type="password" name="password" placeholder="••••••••" autocomplete="current-password" required><?= showError('password') ?></label>
             <?= showError('checkuser') ?>
             <div class="hb-auth-inline"><span></span><a href="?forgotpassword&newfp">Quên mật khẩu?</a></div>
             <button class="hb-primary-button hb-auth-submit" type="submit">Đăng nhập</button>
             <div class="hb-auth-switch"><span>Chưa có tài khoản?</span><a href="?signup">Tạo tài khoản mới</a></div>
-            <div class="hb-auth-security"><i class="bi bi-shield-check"></i><span>Phiên đăng nhập được bảo vệ và kiểm tra quyền ở backend.</span></div>
+            <div class="hb-auth-security"><i class="bi bi-shield-check"></i><span>User đăng nhập vào mạng xã hội; tài khoản có role Admin sẽ tự vào Control Center và vẫn có thể quay lại dùng mạng xã hội bằng chính tài khoản đó.</span></div>
         </form>
     </section>
 </div>
