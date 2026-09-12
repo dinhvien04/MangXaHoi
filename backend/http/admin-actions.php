@@ -4,25 +4,19 @@ $action = (string) ($_GET['action'] ?? '');
 requirePostRequest();
 requireCsrf();
 
-if ($action === 'login') {
-    $auth = checkAdminUser($_POST);
-    if ($auth['status']) {
-        session_regenerate_id(true);
-        $_SESSION['admin_auth'] = $auth['user_id'];
-        header('Location: ./');
-        exit();
-    }
-    $_SESSION['error'] = ['field' => 'useraccess', 'msg' => 'Email hoặc mật khẩu quản trị không đúng, hoặc tài khoản đang bị khóa.'];
-    header('Location: ./');
-    exit();
-}
-
 $admin = requireAdminAuth();
 
 if ($action === 'logout') {
-    unset($_SESSION['admin_auth']);
+    unset(
+        $_SESSION['Auth'],
+        $_SESSION['userdata'],
+        $_SESSION['admin_auth'],
+        $_SESSION['email_otp'],
+        $_SESSION['forgot_otp'],
+        $_SESSION['auth_temp']
+    );
     session_regenerate_id(true);
-    header('Location: ./');
+    header('Location: ../');
     exit();
 }
 if ($action === 'update_profile') {
@@ -30,22 +24,6 @@ if ($action === 'update_profile') {
         ? ['field' => 'adminprofile', 'msg' => 'Cập nhật thành công!']
         : ['field' => 'adminprofile', 'msg' => 'Không thể cập nhật thông tin. Kiểm tra email, mật khẩu tối thiểu 8 ký tự và dữ liệu trùng lặp.'];
     header('Location: ./?edit_profile');
-    exit();
-}
-if ($action === 'user_login') {
-    $response = loginUserByAdmin($_POST['user_id'] ?? 0);
-    if (!$response['status']) {
-        http_response_code(404);
-        exit('Không tìm thấy người dùng hợp lệ.');
-    }
-    session_regenerate_id(true);
-    $_SESSION['Auth'] = true;
-    $_SESSION['userdata'] = $response['user'];
-    unset($_SESSION['email_otp']);
-    if ((int) $response['user']['ac_status'] === 0) {
-        sendOtpToSession('email_otp', $response['user']['email'], 'verify_email', 'Xác minh email của bạn', false);
-    }
-    header('Location: ../');
     exit();
 }
 if ($action === 'update_role') {
