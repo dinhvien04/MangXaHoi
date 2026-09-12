@@ -8,7 +8,7 @@ function validateUserSession($allowUnverified = false)
     }
 
     $user = getUser($userId);
-    if (!$user || (string) $user['role'] !== 'User') {
+    if (!$user || !in_array((string) $user['role'], ['User', 'Admin'], true)) {
         unset($_SESSION['Auth'], $_SESSION['userdata'], $_SESSION['email_otp']);
         return ['ok' => false, 'reason' => 'invalid_session', 'user' => null];
     }
@@ -46,18 +46,26 @@ function requireUserAuth($allowUnverified = false)
 
 function validateAdminSession()
 {
-    $adminId = (int) ($_SESSION['admin_auth'] ?? 0);
-    if ($adminId <= 0) {
-        return ['ok' => false, 'admin' => null];
+    $userId = (int) ($_SESSION['userdata']['id'] ?? 0);
+    if (empty($_SESSION['Auth']) || $userId <= 0) {
+        return ['ok' => false, 'reason' => 'unauthenticated', 'admin' => null];
     }
 
-    $admin = getAdmin($adminId);
-    if (!$admin) {
-        unset($_SESSION['admin_auth']);
-        return ['ok' => false, 'admin' => null];
+    $account = getUser($userId);
+    if (!$account) {
+        unset($_SESSION['Auth'], $_SESSION['userdata'], $_SESSION['email_otp']);
+        return ['ok' => false, 'reason' => 'invalid_session', 'admin' => null];
     }
 
-    return ['ok' => true, 'admin' => $admin];
+    $_SESSION['userdata'] = $account;
+    if ((int) $account['ac_status'] !== 1) {
+        return ['ok' => false, 'reason' => 'inactive', 'admin' => null];
+    }
+    if ((string) $account['role'] !== 'Admin') {
+        return ['ok' => false, 'reason' => 'forbidden', 'admin' => null];
+    }
+
+    return ['ok' => true, 'reason' => null, 'admin' => $account];
 }
 
 function requireAdminAuth()
@@ -67,7 +75,7 @@ function requireAdminAuth()
         return $auth['admin'];
     }
 
-    http_response_code(403);
+    http_response_code($auth['reason'] === 'unauthenticated' ? 401 : 403);
     exit('Bạn không có quyền thực hiện thao tác này.');
 }
 
