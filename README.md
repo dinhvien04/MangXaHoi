@@ -18,6 +18,16 @@ MangXaHoi/
 
 Backend được chia theo feature (`auth`, `users`, `posts`, `interactions`, `messages`, `notifications`, `search`, `admin`) thay vì classic MVC nhiều tầng. Frontend không nằm trong backend.
 
+## Tài khoản và phân quyền
+
+Handbook dùng **một bảng `users`, một form đăng nhập và một session xác thực** cho cả User lẫn Admin.
+
+- `role = 'User'`: đăng nhập xong vào mạng xã hội.
+- `role = 'Admin'`: đăng nhập bằng cùng form, hệ thống tự chuyển tới `/admin/`.
+- Admin vẫn là một tài khoản Handbook bình thường và có thể quay lại giao diện mạng xã hội bằng chính session đó.
+- Quyền Admin được kiểm tra lại từ database trên mỗi action/API quản trị. Nếu bị hạ role, quyền Control Center mất ngay nhưng tài khoản vẫn có thể tiếp tục dùng phần User.
+- Không có form đăng nhập Admin riêng và không có chức năng Admin giả mạo/đăng nhập thành người dùng khác.
+
 ## Yêu cầu
 
 - PHP 8.1+ (khuyến nghị PHP 8.2+)
@@ -32,28 +42,34 @@ Backend được chia theo feature (`auth`, `users`, `posts`, `interactions`, `m
 2. Khuyến nghị chạy `composer install` để dùng PHPMailer 7.1.1. Nếu chưa có Composer, mailer tương thích cũ vẫn được dùng làm fallback tạm thời.
 3. Tạo database `handbook` và import `database/handbook.sql`.
 4. Copy `config/smtp.example.php` thành `config/smtp.php` và điền SMTP nếu cần email/OTP.
-5. Mở `http://localhost/MangXaHoi/`.
-6. Admin: `http://localhost/MangXaHoi/admin/`.
+5. Mở `http://localhost/MangXaHoi/` và đăng nhập tại form chung.
+6. Tài khoản có role Admin sẽ được chuyển tới `http://localhost/MangXaHoi/admin/`; User thường không được vào Control Center.
 
 Database có thể cấu hình bằng `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`.
 
 ## Nâng cấp database cũ
 
-**Backup database trước**, sau đó chạy một lần:
+**Backup database trước**. Với database từ phiên bản cũ, chạy migration hardening nếu chưa chạy:
 
 ```text
 database/migrations/20260909_backend_hardening.sql
 ```
 
-Migration thêm foreign key/cascade, unique constraint cho email/username/like/follow/block, index hiệu năng, bảng rate-limit và chuẩn hóa cột moderation/notification. Nếu database cũ đã có email hoặc username trùng nhau, xử lý dữ liệu trùng trước khi chạy migration.
+Sau đó chạy migration cleanup cho mô hình đăng nhập chung:
+
+```text
+database/migrations/20260912_unified_auth.sql
+```
+
+Migration thứ hai chỉ loại bỏ cột `password_text` cũ; có thể chạy lại an toàn nếu cột này đã được xóa trước đó.
 
 ## Backend hardening
 
 Backend hiện áp dụng:
 
 - session cookie `HttpOnly`, `SameSite=Lax`, strict-mode, idle/absolute timeout;
-- revalidate user/admin từ database ở mỗi action/API nhạy cảm;
-- tài khoản bị block, bị xóa hoặc admin bị hạ quyền không thể tiếp tục dùng session cũ;
+- một session role-aware cho User/Admin và revalidate quyền từ database ở action/API nhạy cảm;
+- tài khoản bị block, bị xóa hoặc admin bị hạ quyền không thể tiếp tục dùng quyền cũ;
 - CSRF synchronizer token cho state-changing request;
 - action/API thay đổi trạng thái chỉ nhận `POST`;
 - prepared statements + database FK/UNIQUE để chống orphan/duplicate data;
@@ -71,7 +87,7 @@ GitHub Actions workflow `Backend Tests` chạy:
 
 - `php -l` cho PHP backend/frontend/tests;
 - import schema sạch vào MySQL 8;
-- `tests/backend/integration.php` hiện có hơn 60 assertion cho auth/session, CSRF/OTP, duplicate constraints, follow/block, message, search, like/comment/post ownership, moderation, admin privilege revocation và cascade delete.
+- `tests/backend/integration.php` có hơn 60 assertion cho auth/session, CSRF/OTP, duplicate constraints, follow/block, message, search, like/comment/post ownership, moderation, role-based Admin access, privilege revocation và cascade delete.
 
 Chạy local sau khi có database test đã import:
 
