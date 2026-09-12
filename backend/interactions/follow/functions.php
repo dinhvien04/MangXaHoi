@@ -22,7 +22,7 @@ function getFollowSuggestions($limit = 20)
     $currentUserId = (int) ($_SESSION['userdata']['id'] ?? 0);
     $limit = max(1, min(50, (int) $limit));
     $stmt = $db->prepare("SELECT u.* FROM users u
-        WHERE u.id != ? AND u.role = 'User' AND u.ac_status = 1
+        WHERE u.id != ? AND u.ac_status = 1
           AND NOT EXISTS (SELECT 1 FROM follow_list f WHERE f.follower_id = ? AND f.user_id = u.id)
           AND NOT EXISTS (SELECT 1 FROM block_list b WHERE (b.user_id = ? AND b.blocked_user_id = u.id) OR (b.user_id = u.id AND b.blocked_user_id = ?))
         ORDER BY u.id DESC LIMIT ?");
