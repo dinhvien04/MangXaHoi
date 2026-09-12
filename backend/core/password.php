@@ -12,6 +12,7 @@ function passwordMatches($plainPassword, $storedPassword)
         return password_verify((string) $plainPassword, $storedPassword);
     }
 
+    // Temporary compatibility for legacy databases. A successful login immediately upgrades the value.
     return hash_equals($storedPassword, (string) $plainPassword)
         || hash_equals($storedPassword, md5((string) $plainPassword));
 }
@@ -26,7 +27,7 @@ function upgradePasswordHash($userId, $plainPassword, $storedPassword)
     }
 
     $newHash = password_hash((string) $plainPassword, PASSWORD_DEFAULT);
-    $stmt = $db->prepare("UPDATE users SET password = ?, password_text = '' WHERE id = ?");
+    $stmt = $db->prepare('UPDATE users SET password = ? WHERE id = ?');
     $userId = (int) $userId;
     $stmt->bind_param('si', $newHash, $userId);
     $stmt->execute();
