@@ -84,6 +84,10 @@ function validateLoginForm($formData)
     return ['status' => true, 'user' => $auth['user']];
 }
 
+/**
+ * Unified account authentication. Admin is a normal users-row with role=Admin;
+ * there is intentionally no separate admin credential store or login form.
+ */
 function checkUser($loginData)
 {
     global $db;
@@ -95,8 +99,9 @@ function checkUser($loginData)
         return $data;
     }
 
-    $stmt = $db->prepare("SELECT * FROM users WHERE (email = ? OR username = ?) AND role = 'User' LIMIT 1");
-    $stmt->bind_param('ss', $usernameEmail, $usernameEmail);
+    $normalizedEmail = normalizeEmail($usernameEmail);
+    $stmt = $db->prepare('SELECT * FROM users WHERE email = ? OR username = ? LIMIT 1');
+    $stmt->bind_param('ss', $normalizedEmail, $usernameEmail);
     $stmt->execute();
     $user = $stmt->get_result()->fetch_assoc();
     $stmt->close();
@@ -106,11 +111,10 @@ function checkUser($loginData)
     }
 
     $user['password'] = upgradePasswordHash((int) $user['id'], $plainPassword, $user['password']);
-    $user['password_text'] = '';
     $data['status'] = true;
     $data['user'] = $user;
     $data['user_id'] = (int) $user['id'];
-    $data['role'] = $user['role'];
+    $data['role'] = (string) $user['role'];
     return $data;
 }
 
@@ -125,12 +129,11 @@ function createUser($data)
     $gender = $genderValue === 2 ? 'Female' : ($genderValue === 3 ? 'Others' : 'Male');
     $passwordHash = password_hash((string) ($data['password'] ?? ''), PASSWORD_DEFAULT);
     $role = 'User';
-    $passwordText = '';
     $acStatus = 0;
 
     try {
-        $stmt = $db->prepare('INSERT INTO users (first_name, last_name, gender, email, username, password, password_text, role, ac_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        $stmt->bind_param('ssssssssi', $firstName, $lastName, $gender, $email, $username, $passwordHash, $passwordText, $role, $acStatus);
+        $stmt = $db->prepare('INSERT INTO users (first_name, last_name, gender, email, username, password, role, ac_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt->bind_param('sssssssi', $firstName, $lastName, $gender, $email, $username, $passwordHash, $role, $acStatus);
         $ok = $stmt->execute();
         $stmt->close();
         return $ok;
@@ -160,7 +163,7 @@ function resetPassword($email, $password)
         return false;
     }
     $passwordHash = password_hash((string) $password, PASSWORD_DEFAULT);
-    $stmt = $db->prepare("UPDATE users SET password = ?, password_text = '' WHERE email = ?");
+    $stmt = $db->prepare('UPDATE users SET password = ? WHERE email = ?');
     $stmt->bind_param('ss', $passwordHash, $email);
     $stmt->execute();
     $affected = $stmt->affected_rows;
