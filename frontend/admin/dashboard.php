@@ -2,25 +2,40 @@
 <html lang="vi">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="<?= e(csrfToken()) ?>">
     <meta name="referrer" content="same-origin">
+    <meta name="theme-color" content="#0f172a">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../public/admin/plugins/fontawesome-free/css/all.min.css">
     <link rel="stylesheet" href="../public/admin/dist/css/adminlte.min.css">
-    <link rel="stylesheet" href="../public/css/handbook-desktop.css">
-    <title>Handbook Admin</title>
+    <link rel="stylesheet" href="../public/css/novera.css">
+    <link rel="icon" type="image/svg+xml" href="../public/images/novera-mark.svg">
+    <title>Novera Admin</title>
 </head>
 <body class="hb-admin-body">
 <?php
 $isManage = isset($_GET['manage']);
 $isEdit = isset($_GET['edit_profile']);
+$pageLabel = $isManage ? 'Quản lý bài đăng' : ($isEdit ? 'Cập nhật thông tin' : 'Quản lý người dùng');
 ?>
+<header class="hb-admin-mobile-topbar">
+    <button id="hb_admin_mobile_menu_toggle" type="button" aria-label="Mở menu quản trị" aria-expanded="false"><i class="fas fa-bars"></i></button>
+    <span class="hb-admin-mobile-title"><strong><?= e($pageLabel) ?></strong><small>Novera Admin</small></span>
+    <form method="post" action="?action=logout"><?= csrfField() ?><button type="submit">Đăng xuất</button></form>
+</header>
+<nav class="hb-admin-mobile-menu" id="hb_admin_mobile_menu" aria-label="Menu quản trị di động">
+    <a class="<?= !$isManage && !$isEdit ? 'is-active' : '' ?>" href="./"><i class="fas fa-users"></i> Quản lý người dùng</a>
+    <a class="<?= $isManage ? 'is-active' : '' ?>" href="?manage"><i class="fas fa-newspaper"></i> Quản lý bài đăng</a>
+    <a class="<?= $isEdit ? 'is-active' : '' ?>" href="?edit_profile"><i class="fas fa-user-cog"></i> Cập nhật thông tin</a>
+    <a href="../"><i class="fas fa-globe"></i> Mở Novera Social</a>
+</nav>
+
 <div class="hb-admin-shell">
     <aside class="hb-admin-sidebar">
-        <a href="./" class="hb-admin-sidebar-brand"><span class="hb-brand-mark">H</span><strong>Handbook Admin</strong></a>
+        <a href="./" class="hb-admin-sidebar-brand"><span class="hb-brand-mark">N</span><strong>Novera Admin</strong></a>
         <span class="hb-admin-label">CONTROL CENTER</span>
         <nav class="hb-admin-nav">
             <a class="<?= !$isManage && !$isEdit ? 'is-active' : '' ?>" href="./"><span><i class="fas fa-users"></i></span> Quản lý người dùng</a>
@@ -34,14 +49,14 @@ $isEdit = isset($_GET['edit_profile']);
 
     <div class="hb-admin-main">
         <header class="hb-admin-topbar">
-            <div><h1><?= $isManage ? 'Quản lý bài đăng' : ($isEdit ? 'Cập nhật thông tin' : 'Quản lý người dùng') ?></h1><p>Handbook Social / Admin</p></div>
+            <div><h1><?= e($pageLabel) ?></h1><p>Novera Social / Admin</p></div>
             <div class="hb-admin-top-actions">
                 <a class="hb-secondary-button" href="../"><i class="fas fa-globe"></i> Mạng xã hội</a>
                 <form method="post" action="?action=logout"><?= csrfField() ?><button class="hb-secondary-button hb-admin-logout" type="submit"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button></form>
             </div>
         </header>
         <main class="hb-admin-content">
-            <div class="hb-alert hb-alert-info"><i class="fas fa-shield-alt"></i><span><strong>Admin là quyền của chính tài khoản Handbook này.</strong> Bạn đang dùng cùng một phiên đăng nhập; quyền Admin được kiểm tra lại từ database ở mỗi thao tác quản trị.</span></div>
+            <div class="hb-alert hb-alert-info"><i class="fas fa-shield-alt"></i><span><strong>Admin là quyền của chính tài khoản Novera này.</strong> Bạn đang dùng cùng một phiên đăng nhập; quyền Admin được kiểm tra lại từ database ở mỗi thao tác quản trị.</span></div>
             <?php if (!empty($_SESSION['admin_flash'])): ?><div class="hb-alert hb-alert-info"><i class="fas fa-info-circle"></i><span><?= e($_SESSION['admin_flash']) ?></span></div><?php unset($_SESSION['admin_flash']); endif; ?>
 
             <?php if ($isEdit): ?>
@@ -53,7 +68,7 @@ $isEdit = isset($_GET['edit_profile']);
                         <div class="hb-admin-profile-summary"><span class="hb-admin-avatar hb-admin-avatar-lg">AD</span><span><strong><?= e($admin['first_name'].' '.$admin['last_name']) ?></strong><small>Administrator</small></span></div>
                         <div class="hb-settings-divider"></div>
                         <div class="hb-form-grid"><label class="hb-field"><span>Họ</span><input name="first_name" maxlength="100" value="<?= e($admin['first_name']) ?>" required></label><label class="hb-field"><span>Tên</span><input name="last_name" maxlength="100" value="<?= e($admin['last_name']) ?>" required></label><label class="hb-field hb-field-wide"><span>Email</span><input type="email" name="email" maxlength="255" value="<?= e($admin['email']) ?>" required></label><label class="hb-field hb-field-wide"><span>Mật khẩu mới</span><input type="password" minlength="8" name="password" placeholder="Để trống nếu không đổi · tối thiểu 8 ký tự"></label></div>
-                        <div class="hb-admin-security-note"><i class="fas fa-shield-alt"></i><span><strong>Quyền Admin được kiểm tra lại từ database trên mỗi thao tác nhạy cảm.</strong><small>Nếu tài khoản bị hạ quyền, quyền truy cập Control Center mất ngay nhưng tài khoản vẫn có thể dùng Handbook như User.</small></span></div>
+                        <div class="hb-admin-security-note"><i class="fas fa-shield-alt"></i><span><strong>Quyền Admin được kiểm tra lại từ database trên mỗi thao tác nhạy cảm.</strong><small>Nếu tài khoản bị hạ quyền, quyền truy cập Novera Control Center mất ngay nhưng tài khoản vẫn có thể dùng Novera như User.</small></span></div>
                         <div class="hb-settings-actions"><button class="hb-primary-button" type="submit">Lưu thay đổi</button><a class="hb-secondary-button" href="./">Hủy</a></div>
                     </form>
                 </section>
@@ -81,7 +96,7 @@ $isEdit = isset($_GET['edit_profile']);
 
             <?php else: $searchUser = trim((string)($_POST['search_user'] ?? '')); $users = getUsersList($searchUser, 100, 0); ?>
                 <section class="hb-admin-section">
-                    <div class="hb-admin-section-head"><div><h2>Tổng quan hệ thống</h2><p>Theo dõi nhanh các chỉ số chính của Handbook Social.</p></div></div>
+                    <div class="hb-admin-section-head"><div><h2>Tổng quan hệ thống</h2><p>Theo dõi nhanh các chỉ số chính của Novera Social.</p></div></div>
                     <div class="hb-admin-stats">
                         <div class="hb-stat-card"><span class="hb-stat-icon"><i class="fas fa-users"></i></span><div><strong><?= totalUsersCount() ?></strong><span>Tổng người dùng</span><small>Dữ liệu hiện tại</small></div></div>
                         <div class="hb-stat-card"><span class="hb-stat-icon"><i class="fas fa-newspaper"></i></span><div><strong><?= totalPostsCount() ?></strong><span>Tổng bài đăng</span><small>Dữ liệu hiện tại</small></div></div>
@@ -99,8 +114,15 @@ $isEdit = isset($_GET['edit_profile']);
         </main>
     </div>
 </div>
+<nav class="hb-admin-mobile-nav" aria-label="Điều hướng quản trị di động">
+    <a class="<?= !$isManage && !$isEdit ? 'is-active' : '' ?>" href="./"><i class="fas fa-users"></i>&nbsp; Users</a>
+    <a class="<?= $isManage ? 'is-active' : '' ?>" href="?manage"><i class="fas fa-newspaper"></i>&nbsp; Posts</a>
+    <a class="<?= $isEdit ? 'is-active' : '' ?>" href="?edit_profile"><i class="fas fa-user-cog"></i>&nbsp; Profile</a>
+    <a href="../"><i class="fas fa-ellipsis-h"></i>&nbsp; More</a>
+</nav>
 <script src="../public/admin/plugins/jquery/jquery.min.js"></script>
 <script src="../public/js/security.js"></script>
+<script defer src="../public/js/novera-ui.js"></script>
 <script src="../public/admin/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../public/js/admin/actions.js"></script>
 </body>
