@@ -138,7 +138,7 @@ function createUser($data)
         $stmt->close();
         return $ok;
     } catch (Throwable $e) {
-        error_log('Handbook create user error: ' . $e->getMessage());
+        error_log('Novera create user error: ' . $e->getMessage());
         return false;
     }
 }

@@ -18,7 +18,7 @@ function sendCode($email, $subject, $code)
 {
     $root = dirname(__DIR__, 3);
     if (!class_exists(PHPMailer::class)) {
-        error_log('Handbook mail error: PHPMailer is unavailable. Run composer install.');
+        error_log('Novera mail error: PHPMailer is unavailable. Run composer install.');
         return false;
     }
     $email = normalizeEmail($email);
@@ -28,13 +28,13 @@ function sendCode($email, $subject, $code)
 
     $smtpPath = $root . '/config/smtp.php';
     if (!is_file($smtpPath)) {
-        error_log('Handbook mail error: config/smtp.php is missing.');
+        error_log('Novera mail error: config/smtp.php is missing.');
         return false;
     }
 
     $smtpConfig = require $smtpPath;
     if (!is_array($smtpConfig) || empty($smtpConfig['username']) || empty($smtpConfig['password'])) {
-        error_log('Handbook mail error: SMTP credentials are missing.');
+        error_log('Novera mail error: SMTP credentials are missing.');
         return false;
     }
 
@@ -52,7 +52,7 @@ function sendCode($email, $subject, $code)
             : PHPMailer::ENCRYPTION_SMTPS;
         $mail->Port = (int) ($smtpConfig['port'] ?? ($encryption === 'starttls' ? 587 : 465));
         $mail->CharSet = 'UTF-8';
-        $mail->setFrom((string) $smtpConfig['username'], (string) ($smtpConfig['from_name'] ?? 'Handbook'));
+        $mail->setFrom((string) $smtpConfig['username'], (string) ($smtpConfig['from_name'] ?? 'Novera'));
         $mail->addAddress($email);
         $mail->isHTML(true);
         $mail->Subject = (string) $subject;
@@ -62,17 +62,12 @@ function sendCode($email, $subject, $code)
             throw new RuntimeException('Email template not found');
         }
         $mail->Body = str_replace('{{CODE}}', e($code), $template);
-        $mail->AltBody = 'Mã xác minh Handbook của bạn là: ' . (string) $code;
-
-        $logo = $root . '/public/images/icon.png';
-        if (is_file($logo)) {
-            $mail->addEmbeddedImage($logo, 'logo');
-        }
+        $mail->AltBody = 'Mã xác minh Novera của bạn là: ' . (string) $code;
         $mail->send();
         return true;
     } catch (Throwable $e) {
         $details = $e instanceof Exception ? $mail->ErrorInfo : $e->getMessage();
-        error_log('Handbook mail error: ' . $details);
+        error_log('Novera mail error: ' . $details);
         return false;
     }
 }

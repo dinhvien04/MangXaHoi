@@ -1,0 +1,10 @@
+@import url("handbook-desktop.css");
+
+/*
+ * Novera UI entry point.
+ *
+ * The existing hb-* class names remain intentionally stable because they are
+ * implementation hooks shared by PHP templates and JavaScript. Branding is
+ * presentation/content, so renaming those hooks would add migration risk
+ * without changing the rendered product.
+ */

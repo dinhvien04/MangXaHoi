@@ -33,37 +33,37 @@ $renderShell = function ($title, $body, array $bodyData = [], $withNavbar = fals
 };
 
 if ($user && (int) $user['ac_status'] === 2) {
-    $renderShell('Tài khoản bị chặn', 'user/profile/blocked', ['user' => $user]);
+    $renderShell('Novera - Tài khoản bị chặn', 'user/profile/blocked', ['user' => $user]);
 } elseif ($user && (int) $user['ac_status'] === 0) {
-    $renderShell('Xác minh Email của bạn', 'user/auth/verify-email', ['user' => $user]);
+    $renderShell('Novera - Xác minh Email', 'user/auth/verify-email', ['user' => $user]);
 } elseif ($user && (int) $user['ac_status'] === 1 && isset($_GET['editprofile'])) {
-    $renderShell('Chỉnh sửa hồ sơ', 'user/profile/edit-profile', ['user' => $user], true);
+    $renderShell('Novera - Chỉnh sửa hồ sơ', 'user/profile/edit-profile', ['user' => $user], true);
 } elseif ($user && (int) $user['ac_status'] === 1 && isset($_GET['u'])) {
     $profile = getUserByUsername($_GET['u']);
     if (!$profile || (int) $profile['ac_status'] !== 1) {
-        $renderShell('Không tìm thấy người dùng', 'user/profile/user-not-found', [], true);
+        $renderShell('Novera - Không tìm thấy người dùng', 'user/profile/user-not-found', [], true);
     } else {
         $profilePosts = getPostById($profile['id'], 50, 0);
         $profile['followers'] = getFollowers($profile['id']);
         $profile['following'] = getFollowing($profile['id']);
-        $renderShell($profile['first_name'] . ' ' . $profile['last_name'], 'user/profile/profile', [
+        $renderShell($profile['first_name'] . ' ' . $profile['last_name'] . ' · Novera', 'user/profile/profile', [
             'user' => $user,
             'profile' => $profile,
             'profilePosts' => $profilePosts,
         ], true);
     }
 } elseif ($user && (int) $user['ac_status'] === 1) {
-    $renderShell('Trang chủ', 'user/posts/wall', [
+    $renderShell('Novera - Trang chủ', 'user/posts/wall', [
         'user' => $user,
         'posts' => $posts,
         'followSuggestions' => $followSuggestions,
     ], true);
 } elseif (isset($_GET['signup'])) {
-    $renderShell('Handbook - Đăng ký', 'user/auth/signup');
+    $renderShell('Novera - Đăng ký', 'user/auth/signup');
 } elseif (isset($_GET['forgotpassword'])) {
-    $renderShell('Handbook - Quên mật khẩu', 'user/auth/forgot-password');
+    $renderShell('Novera - Quên mật khẩu', 'user/auth/forgot-password');
 } else {
-    $renderShell('Handbook - Đăng nhập', 'user/auth/login');
+    $renderShell('Novera - Đăng nhập', 'user/auth/login');
 }
 
 unset($_SESSION['error'], $_SESSION['formdata']);

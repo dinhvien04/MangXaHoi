@@ -5,14 +5,14 @@ else $action = 'forgot_password';
 ?>
 <div class="hb-auth-page">
     <section class="hb-auth-brand-panel">
-        <div class="hb-auth-brand"><span class="hb-brand-mark">H</span><strong>Handbook Social</strong></div>
+        <div class="hb-auth-brand"><span class="hb-brand-mark">N</span><strong>Novera Social</strong></div>
         <div class="hb-auth-brand-copy"><span class="hb-auth-kicker">ACCOUNT RECOVERY</span><h1>Lấy lại tài khoản.<br>Tiếp tục kết nối.</h1><p>Mã xác minh có thời hạn ngắn và được bảo vệ bởi giới hạn số lần thử ở backend.</p></div>
         <div class="hb-auth-security-card"><i class="bi bi-shield-lock-fill"></i><div><strong>Khôi phục an toàn</strong><span>Mã xác minh hết hạn sau 5 phút và không thể dùng lại.</span></div></div>
     </section>
     <section class="hb-auth-form-panel">
         <form class="hb-auth-card" method="post" action="?action=<?= e($action) ?>">
             <?= csrfField() ?>
-            <span class="hb-auth-mobile-brand"><span class="hb-brand-mark">H</span> Handbook Social</span>
+            <span class="hb-auth-mobile-brand"><span class="hb-brand-mark">N</span> Novera Social</span>
             <?php if ($action === 'forgot_password'): ?>
                 <span class="hb-state-icon hb-state-icon-small"><i class="bi bi-key"></i></span>
                 <h2>Quên mật khẩu?</h2><p class="hb-auth-subtitle">Nhập email để nhận mã xác minh.</p>
@@ -35,7 +35,7 @@ else $action = 'forgot_password';
                 <label class="hb-field"><span>Nhập lại mật khẩu</span><input type="password" name="password_confirm" minlength="8" placeholder="Nhập lại mật khẩu mới" autocomplete="new-password" data-confirm-password required></label>
                 <div class="hb-password-rules"><span><i class="bi bi-check-circle-fill"></i> Tối thiểu 8 ký tự</span><span><i class="bi bi-shield-check"></i> Không dùng mật khẩu quá dễ đoán</span><span><i class="bi bi-lightbulb"></i> Nên kết hợp chữ và số</span></div>
                 <button class="hb-primary-button hb-auth-submit" type="submit">Đổi mật khẩu</button>
-                <p class="hb-auth-footnote">Sau khi đổi mật khẩu, bạn sẽ quay lại màn hình đăng nhập.</p>
+                <p class="hb-auth-footnote">Sau khi đổi mật khẩu, bạn sẽ quay lại màn hình đăng nhập Novera.</p>
             <?php endif; ?>
         </form>
     </section>
