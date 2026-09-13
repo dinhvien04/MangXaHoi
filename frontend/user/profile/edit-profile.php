@@ -1,5 +1,5 @@
 <div class="hb-settings-page">
-    <div class="hb-settings-header"><a href="?u=<?= rawurlencode($user['username']) ?>" class="hb-back-link"><i class="bi bi-arrow-left"></i> Quay lại hồ sơ</a><div><h1>Chỉnh sửa hồ sơ</h1><p>Cập nhật thông tin hiển thị trên Handbook Social.</p></div></div>
+    <div class="hb-settings-header"><a href="?u=<?= rawurlencode($user['username']) ?>" class="hb-back-link"><i class="bi bi-arrow-left"></i> Quay lại hồ sơ</a><div><h1>Chỉnh sửa hồ sơ</h1><p>Cập nhật thông tin hiển thị trên Novera Social.</p></div></div>
     <section class="hb-card hb-settings-card">
         <form method="post" action="?action=update_profile" enctype="multipart/form-data">
             <?= csrfField() ?>
