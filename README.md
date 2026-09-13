@@ -1,6 +1,6 @@
-# Handbook - Ứng dụng mạng xã hội
+# Novera - Ứng dụng mạng xã hội
 
-Handbook là ứng dụng mạng xã hội PHP/MySQL hỗ trợ đăng ký, đăng nhập, OTP email, hồ sơ, bài đăng, like, bình luận, follow, block, tìm kiếm, thông báo, nhắn tin và quản trị.
+Novera là ứng dụng mạng xã hội PHP/MySQL hỗ trợ đăng ký, đăng nhập, OTP email, hồ sơ, bài đăng, like, bình luận, follow, block, tìm kiếm, thông báo, nhắn tin và quản trị.
 
 ## Kiến trúc
 
@@ -20,13 +20,23 @@ Backend được chia theo feature (`auth`, `users`, `posts`, `interactions`, `m
 
 ## Tài khoản và phân quyền
 
-Handbook dùng **một bảng `users`, một form đăng nhập và một session xác thực** cho cả User lẫn Admin.
+Novera dùng **một bảng `users`, một form đăng nhập và một session xác thực** cho cả User lẫn Admin.
 
 - `role = 'User'`: đăng nhập xong vào mạng xã hội.
 - `role = 'Admin'`: đăng nhập bằng cùng form, hệ thống tự chuyển tới `/admin/`.
-- Admin vẫn là một tài khoản Handbook bình thường và có thể quay lại giao diện mạng xã hội bằng chính session đó.
-- Quyền Admin được kiểm tra lại từ database trên mỗi action/API quản trị. Nếu bị hạ role, quyền Control Center mất ngay nhưng tài khoản vẫn có thể tiếp tục dùng phần User.
+- Admin vẫn là một tài khoản Novera bình thường và có thể quay lại giao diện mạng xã hội bằng chính session đó.
+- Quyền Admin được kiểm tra lại từ database trên mỗi action/API quản trị. Nếu bị hạ role, quyền Novera Control Center mất ngay nhưng tài khoản vẫn có thể tiếp tục dùng phần User.
 - Không có form đăng nhập Admin riêng và không có chức năng Admin giả mạo/đăng nhập thành người dùng khác.
+
+## Giao diện Novera
+
+Frontend được đồng bộ theo bộ thiết kế Figma Novera gồm 48 trạng thái desktop/mobile. Các class nội bộ `hb-*` và tên schema/database cũ được giữ lại để tương thích với code hiện có; đây chỉ là implementation hooks, không còn là branding hiển thị cho người dùng.
+
+- `public/css/novera.css`: entrypoint giao diện Novera.
+- `public/css/novera-mobile.css`: responsive/mobile states.
+- `public/css/novera-patches.css`: các điều chỉnh responsive nhỏ.
+- `public/js/novera-ui.js`: hành vi UI và compatibility aliases.
+- `public/images/novera-mark.svg`: logo Novera.
 
 ## Yêu cầu
 
@@ -40,7 +50,7 @@ Handbook dùng **một bảng `users`, một form đăng nhập và một sessio
 
 1. Clone repository vào web root, ví dụ `htdocs/MangXaHoi`.
 2. Khuyến nghị chạy `composer install` để dùng PHPMailer 7.1.1. Nếu chưa có Composer, mailer tương thích cũ vẫn được dùng làm fallback tạm thời.
-3. Tạo database `handbook` và import `database/handbook.sql`.
+3. Tạo database `handbook` và import `database/handbook.sql`. Tên database này được giữ để tương thích với các bản cài cũ; branding sản phẩm hiện là Novera.
 4. Copy `config/smtp.example.php` thành `config/smtp.php` và điền SMTP nếu cần email/OTP.
 5. Mở `http://localhost/MangXaHoi/` và đăng nhập tại form chung.
 6. Tài khoản có role Admin sẽ được chuyển tới `http://localhost/MangXaHoi/admin/`; User thường không được vào Control Center.
