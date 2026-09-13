@@ -2,7 +2,8 @@
     'use strict';
     const meta = document.querySelector('meta[name="csrf-token"]');
     const token = meta ? meta.getAttribute('content') : '';
-    window.handbookCsrfToken = token;
+    window.noveraCsrfToken = token;
+    window.handbookCsrfToken = token; // Backward-compatible alias for existing feature modules.
 
     function ensureFormToken(form) {
         if (!form || String(form.method || 'get').toLowerCase() !== 'post' || !token) return;
@@ -31,7 +32,7 @@
         });
     }
 
-    window.handbookFetch = function (url, options) {
+    function noveraFetch(url, options) {
         const next = Object.assign({ credentials: 'same-origin' }, options || {});
         const method = String(next.method || 'GET').toUpperCase();
         next.headers = Object.assign({}, next.headers || {});
@@ -39,5 +40,8 @@
             next.headers['X-CSRF-Token'] = token;
         }
         return window.fetch(url, next);
-    };
+    }
+
+    window.noveraFetch = noveraFetch;
+    window.handbookFetch = noveraFetch; // Keep old callers working while the UI is migrated.
 })();
